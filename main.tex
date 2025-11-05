@@ -1,0 +1,122 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[margin=0.5in,bottom=1in]{geometry}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{authblk}
+\usepackage{titling}
+\bibliographystyle{plain}
+
+
+
+
+
+\begin{document}
+
+\title{
+\textbf{
+Efficient Simulation of Proto-Quipper Programs
+}
+}
+\author{Ian Turner, University of South Carolina}
+\predate{}
+\date{}
+\postdate{}
+\maketitle
+
+
+
+\begin{abstract}
+    The Proto-Quipper language allows for high-level specification
+    of quantum algorithms in a functional paradigm similar to Haskell.
+    So far, the execution of Proto-Quipper programs has been confined
+    to its own custom simulator (written in Haskell),
+    with no ability to run on third-party
+    simulators or real quantum hardware.
+    This paper discusses efforts to integrate third-party locally-run
+    simulators such as those developed by Google (Cirq) and IBM (Qiskit),
+    as well as possible future efforts to enable execution of
+    Proto-Quipper programs on cloud simulators and even 
+    real quantum processing units (QPUs).
+    We start by describing the technical requirements of Proto-Quipper
+    program simulation,
+    as well as the differences from other quantum programming
+    paradigms that make interoperability between Proto-Quipper and
+    rest of the quantum ecosystem difficult.
+    We then explain our specific implementation of a new simulator
+    architecture that allows for Proto-Quipper programs to be run
+    on third-party simulators, and benchmark our implementation
+    against the existing Haskell-based simulator on several
+    quantum computing tasks.
+    Finally, we discuss the shortcomings of our approach and how future
+    work can overcome these, including the current lack of ability to
+    run Proto-Quipper programs on currently available QPUs.
+\end{abstract}
+
+
+
+\section{Introduction}
+
+
+
+\subsection{Quantum Programming Languages}
+
+
+\subsection{Proto-Quipper with Dynamic Lifting}
+
+
+
+
+\subsection{Simulation of Quantum Computing}
+
+
+
+
+\subsection{Client-Server Architecture}
+
+
+\subsection{OpenQasm}
+
+
+\section{Interpreter for qserver language}
+
+
+\subsection{Intro to the qserver language}
+
+\subsection{An interpretor for the qserver language in Cirq}
+
+\subsection{An interpretor for the qserver language in Qiskit}
+
+
+\subsection{Some benchmark results}
+QFT, QFT adders, Cucarro adders. 
+Semi-classical QFT, Gidney's logical and adder. 
+RUS-RZ gate. (Try magic state distillation, Try quantum error correction for surface code)
+\section{Improving the efficiency of interpreter by queuing}
+
+\subsection{Idea}
+
+\subsection{Implementation details}
+
+\subsection{Benchmark results for the improvement}
+
+\section{Related work}
+\subsection{Quipper circuits translation}
+
+LinguaQuanta \cite{wesley2024linguaquanta}
+
+\subsection{Various simulators from Cirq and Qiskit}
+
+
+\section{Conclusion and Future Work}
+
+\paragraph{Investigating MPS}
+\paragraph{Dynamic lifting to OpenQasm3}
+\paragraph{Dynamic lifting to QIR}
+
+
+
+\bibliography{refs}
+
+\end{document}
+
