@@ -75,7 +75,7 @@ Although these languages have recently started to add more higher-level programm
 to dynamically allocate and de-allocate qubits `on the fly', meaning that the number of qubits a computation uses
 must be known at compile time, and each gate must be mapped to a specific qubit index.
 Cirq and Qiskit are also embedded languages with Python that lack their own syntax/interpreter and rely greatly
-on Python programming constructs to extend their capabilities.
+on Python programming constructs to extend their basic capabilities.
 
 
 In contrast, high-level languages, such as Silq \cite{bichsel2020silq}, Q\# \cite{QSharpDocs},
@@ -85,7 +85,7 @@ They allow for dynamic allocation and de-allocation of qubits, meaning circuits 
 a circuit, used for computation, then returned to the zero state and de-allocated at the end of the circuit)
 can be programmed easily and directly, without the programmer having to worry about qubit memory allocation at compile time.
 They also allow for higher-level classical programming constructs like functions and loops, as well as quantum
-programming constructs like uncomputation.
+programming constructs like uncomputation and reversing.
 
 
 \subsection{Proto-Quipper with Dynamic Lifting}
