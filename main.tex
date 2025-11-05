@@ -61,6 +61,32 @@ Efficient Simulation of Proto-Quipper Programs
 
 \subsection{Quantum Programming Languages}
 
+Quantum programming languages allow programmers to design quantum algorithms at varying levels of abstraction,
+without having to specify the machine instructions required to implement the components of those algorithms.
+These languages can broadly be broken down into `high-level' and `low-level'.
+Low-level languages, such Cirq \cite{cirq}, Qiskit \cite{qiskit}, and OpenQASM \cite{cross2022openqasm}
+can essentially be described as `circuit description languages', where programs are built as a series of unitary
+gate applications to a set of input qubits, as well as mid-circuit measurement operations and gates conditioned on
+those measurement results.
+These languages, similar to assembly languages in classical computing, provide fine-grained control over hardware execution,
+but lack flexibility.
+Although these languages have recently started to add more higher-level programming constructs to their syntax
+(such as for loops and classical variables), they still remain quite limited, mainly in their lack of ability
+to dynamically allocate and de-allocate qubits `on the fly', meaning that the number of qubits a computation uses
+must be known at compile time, and each gate must be mapped to a specific qubit index.
+Cirq and Qiskit are also embedded languages with Python that lack their own syntax/interpreter and rely greatly
+on Python programming constructs to extend their capabilities.
+
+
+In contrast, high-level languages, such as Silq \cite{bichsel2020silq}, Q\# \cite{QSharpDocs},
+and Proto-Quipper \cite{fu2023proto}, are much more flexible
+and extensible, and are designed to generalize to any quantum hardware.
+They allow for dynamic allocation and de-allocation of qubits, meaning circuits with `ancillas' (qubits that are allocated during
+a circuit, used for computation, then returned to the zero state and de-allocated at the end of the circuit)
+can be programmed easily and directly, without the programmer having to worry about qubit memory allocation at compile time.
+They also allow for higher-level classical programming constructs like functions and loops, as well as quantum
+programming constructs like uncomputation.
+
 
 \subsection{Proto-Quipper with Dynamic Lifting}
 
@@ -83,9 +109,9 @@ Efficient Simulation of Proto-Quipper Programs
 
 \subsection{Intro to the qserver language}
 
-\subsection{An interpretor for the qserver language in Cirq}
+\subsection{An interpreter for the qserver language in Cirq}
 
-\subsection{An interpretor for the qserver language in Qiskit}
+\subsection{An interpreter for the qserver language in Qiskit}
 
 
 \subsection{Some benchmark results}
@@ -102,8 +128,6 @@ RUS-RZ gate. (Try magic state distillation, Try quantum error correction for sur
 
 \section{Related work}
 \subsection{Quipper circuits translation}
-
-LinguaQuanta \cite{wesley2024linguaquanta}
 
 \subsection{Various simulators from Cirq and Qiskit}
 
