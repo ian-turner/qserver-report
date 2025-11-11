@@ -1,27 +1,62 @@
-\documentclass[a4paper,11pt]{article}
-\usepackage[margin=0.5in,bottom=1in]{geometry}
-\usepackage{graphicx} % Required for inserting images
-\usepackage{amsmath}
-\usepackage{hyperref}
-\usepackage{authblk}
-\usepackage{titling}
-\bibliographystyle{plain}
+%\documentclass[a4paper,11pt]{article}
+%\usepackage[margin=0.5in,bottom=1in]{geometry}
+%\usepackage{graphicx} % Required for inserting images
+%\usepackage{amsmath}
+%\usepackage{hyperref}
+%\usepackage{authblk}
+%\usepackage{titling}
+
+\documentclass[letterpaper]{article}
+% DO NOT CHANGE THIS
+\usepackage[]{aaai25} % DO NOT CHANGE THIS
+\usepackage{times} % DO NOT CHANGE THIS
+\usepackage{helvet} % DO NOT CHANGE THIS
+\usepackage{courier} % DO NOT CHANGE THIS
+\usepackage[hyphens]{url} % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm} % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\usepackage{natbib} % DO NOT CHANGE THIS
+\usepackage{caption} % DO NOT CHANGE THIS
+\frenchspacing % DO NOT CHANGE THIS
+\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THISvb
+\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
+%
+% Keep the \pdfinfo as shown here. There’s no need
+% for you to add the /Title and /Author tags.
+\pdfinfo{
+/TemplateVersion (2025.1)
+}
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{booktabs}
+%% Section numbering
+% \setcounter{secnumdepth}{2}
 
 
+\title{Efficient Simulation of Proto-Quipper Programs}
 
+\author{Ian Turner\textsuperscript{\rm 1}
+}
+\affiliations{
+
+\textsuperscript{\rm 1}Department of Computer Science and
+Engineering, University of South Carolina, Columbia, South Carolina, USA
+}
 
 
 \begin{document}
 
-\title{
-\textbf{
-Efficient Simulation of Proto-Quipper Programs
-}
-}
-\author{Ian Turner, University of South Carolina}
-\predate{}
-\date{}
-\postdate{}
+%\title{
+%\textbf{
+%Efficient Simulation of Proto-Quipper Programs
+%}
+%}
+%\author{Ian Turner, University of South Carolina}
+%\predate{}
+%\date{}
+%\postdate{}
 \maketitle
 
 
@@ -38,19 +73,19 @@ Efficient Simulation of Proto-Quipper Programs
     as well as possible future efforts to enable execution of
     Proto-Quipper programs on cloud simulators and even 
     real quantum processing units (QPUs).
-    We start by describing the technical requirements of Proto-Quipper
-    program simulation,
-    as well as the differences from other quantum programming
-    paradigms that make interoperability between Proto-Quipper and
-    rest of the quantum ecosystem difficult.
-    We then explain our specific implementation of a new simulator
-    architecture that allows for Proto-Quipper programs to be run
-    on third-party simulators, and benchmark our implementation
-    against the existing Haskell-based simulator on several
-    quantum computing tasks.
-    Finally, we discuss the shortcomings of our approach and how future
-    work can overcome these, including the current lack of ability to
-    run Proto-Quipper programs on currently available QPUs.
+%    We start by describing the technical requirements of Proto-Quipper
+%    program simulation,
+%    as well as the differences from other quantum programming
+%    paradigms that make interoperability between Proto-Quipper and
+%    rest of the quantum ecosystem difficult.
+%    We then explain our specific implementation of a new simulator
+%    architecture that allows for Proto-Quipper programs to be run
+%    on third-party simulators, and benchmark our implementation
+%    against the existing Haskell-based simulator on several
+%    quantum computing tasks.
+%    Finally, we discuss the shortcomings of our approach and how future
+%    work can overcome these, including the current lack of ability to
+%    run Proto-Quipper programs on currently available QPUs.
 \end{abstract}
 
 
@@ -61,31 +96,41 @@ Efficient Simulation of Proto-Quipper Programs
 
 \subsection{Quantum Programming Languages}
 
-Quantum programming languages allow programmers to design quantum algorithms at varying levels of abstraction,
-without having to specify the machine instructions required to implement the components of those algorithms.
-These languages can broadly be broken down into `high-level' and `low-level'.
-Low-level languages, such Cirq \cite{cirq}, Qiskit \cite{qiskit}, and OpenQASM \cite{cross2022openqasm}
-can essentially be described as `circuit description languages', where programs are built as a series of unitary
-gate applications to a set of input qubits, as well as mid-circuit measurement operations and gates conditioned on
-those measurement results.
-These languages, similar to assembly languages in classical computing, provide fine-grained control over hardware execution,
-but lack flexibility.
-Although these languages have recently started to add more higher-level programming constructs to their syntax
-(such as for loops and classical variables), they still remain quite limited, mainly in their lack of ability
-to dynamically allocate and de-allocate qubits `on the fly', meaning that the number of qubits a computation uses
-must be known at compile time, and each gate must be mapped to a specific qubit index.
-Cirq and Qiskit are also embedded languages with Python that lack their own syntax/interpreter and rely greatly
-on Python programming constructs to extend their basic capabilities.
+%Quantum programming languages allow programmers to design quantum algorithms at varying levels of abstraction,
+%without having to specify the machine instructions required to implement the components of those algorithms.
+%These languages can broadly be broken down into `high-level' and `low-level'.
+%Low-level languages, such Cirq \cite{cirq}, Qiskit \cite{qiskit}, and OpenQASM \cite{cross2022openqasm}
+%can essentially be described as `circuit description languages', where programs are built as a series of unitary
+%gate applications to a set of input qubits, as well as mid-circuit measurement operations and gates conditioned on
+%those measurement results.
+%These languages, similar to assembly languages in classical computing, provide fine-grained control over hardware execution,
+%but lack flexibility.
+%Although these languages have recently started to add more higher-level programming constructs to their syntax
+%(such as for loops and classical variables), they still remain quite limited, mainly in their lack of ability
+%to dynamically allocate and de-allocate qubits `on the fly', meaning that the number of qubits a computation uses
+%must be known at compile time, and each gate must be mapped to a specific qubit index.
+%Cirq and Qiskit are also embedded languages with Python that lack their own syntax/interpreter and rely greatly
+%on Python programming constructs to extend their basic capabilities.
 
 
-In contrast, high-level languages, such as Silq \cite{bichsel2020silq}, Q\# \cite{QSharpDocs},
-and Proto-Quipper \cite{fu2023proto}, are much more flexible
-and extensible, and are designed to generalize to any quantum hardware.
-They allow for dynamic allocation and de-allocation of qubits, meaning circuits with `ancillas' (qubits that are allocated during
-a circuit, used for computation, then returned to the zero state and de-allocated at the end of the circuit)
-can be programmed easily and directly, without the programmer having to worry about qubit memory allocation at compile time.
-They also allow for higher-level classical programming constructs like functions and loops, as well as quantum
-programming constructs like uncomputation and reversing.
+%In contrast, high-level languages, such as Silq \cite{bichsel2020silq}, Q\# \cite{QSharpDocs},
+%and Proto-Quipper \cite{fu2023proto}, are much more flexible
+%and extensible, and are designed to generalize to any quantum hardware.
+%They allow for dynamic allocation and de-allocation of qubits, meaning circuits with `ancillas' (qubits that are allocated during
+%a circuit, used for computation, then returned to the zero state and de-allocated at the end of the circuit)
+%can be programmed easily and directly, without the programmer having to worry about qubit memory allocation at compile time.
+%They also allow for higher-level classical programming constructs like functions and loops, as well as quantum
+%programming constructs like uncomputation and reversing.
+
+Quantum programming languages allow programers to design quantum algorithms at varying levels of abstraction.
+`Low-level' languages like Cirq \cite{cirq}, Qiskit \cite{qiskit}, and OpenQASM \cite{cross2022openqasm} allow for
+fine-grained control over circuit construction and execution, while
+`high-level' languages such as Silq \cite{bichsel2020silq}, Q\# \cite{QSharpDocs},
+ and Proto-Quipper \cite{fu2023proto}
+allow for more complex circuits to be generated by using programming constructs like loops and recursion.
+High-level quantum programming languages also 
+
+
 
 
 \subsection{Proto-Quipper with Dynamic Lifting}
@@ -140,7 +185,7 @@ RUS-RZ gate. (Try magic state distillation, Try quantum error correction for sur
 
 
 
-\bibliography{refs}
+\bibliography{refs.bib}
 
 \end{document}
 
