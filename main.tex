@@ -31,6 +31,7 @@
 
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{booktabs}
+\usepackage{nicematrix}
 %% Section numbering
 % \setcounter{secnumdepth}{2}
 
@@ -135,7 +136,7 @@ qubit allocation.
 
 \subsection{Proto-Quipper with Dynamic Lifting}
 
-Proto-Quipper is a family of function quantum programming languages designed to give a formal foundation to Quipper.
+Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper.
 In contrast to low-level languages, Proto-Quipper contains two runtimes; circuit generation and circuit execution.
 Variables whose values are defined during circuit generation time are called \textit{parameters}, while variables
 that are defined during circuit execution time are called \textit{states}.
@@ -144,18 +145,70 @@ This can be used to lift circuit measurement results from the circuit execution 
 generation runtime in order to modify the generation of the next circuit.
 This allows for quantum and classical instructions to be interleaved seamlessly.
 
+Proto-Quipper also enforces a typing system, which ensures program correctness through type checking.
+The types \textbf{Qubit} and \textbf{Bit} are considered \textit{linear}, meaning they cannot be duplicated
+or discarded.
+This prevents runtime/logic errors that can occur in low-level languages such as attempting to duplicate a qubit
+or discarding a qubit without measuring it.
+
 
 
 
 \subsection{Simulation of Quantum Computing}
 
+An $N$-qubit quantum system can be described by a unit vector in a complex vector space of size $2^N$.
+In the case of one qubit, all possible states can be described as
+\begin{equation}
+|\psi\rangle = \alpha \begin{bmatrix} 1 \\ 0 \end{bmatrix}
++ \beta \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \alpha|0\rangle + \beta|1\rangle
+\end{equation}
+where $\alpha, \beta \in \mathbb{C}$ and $|\alpha|^2+|\beta|^2=1$ \cite{nielsen2001quantum}.
+Quantum gates can be desribed as unitary matrices that transform quantum states.
+For example, the $X$ gate swaps $|0\rangle$ states with $|1\rangle$ states;
+\begin{equation}
+X|\psi\rangle = X(\alpha|0\rangle + \beta|1\rangle) = \beta|0\rangle + \alpha|1\rangle,
+\end{equation}
+and can be written as
+\begin{equation}
+X := \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}.
+\end{equation}
 
+Multiple-qubit systems can be constructed using the tensor product.
+The tensor product is a binary operator on matrices and vectors with the following formula
+\begin{equation}
+v \otimes w :=
+\left[\begin{array}{cccc}
+v_{1} w_{1} & v_{1} w_{2} & \cdots & v_{1} w_{m} \\
+v_{2} w_{1} & v_{2} w_{2} & \cdots & v_{2} w_{m} \\
+\vdots & \vdots & \ddots & \vdots \\
+v_{n} w_{1} & v_{n} w_{2} & \cdots & v_{n} w_{m}
+\end{array}\right]
+\end{equation}
+For example, the two qubit state $|01\rangle$ can be constructed as
+\begin{equation}
+|01\rangle = |0\rangle \otimes |1\rangle = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \otimes \begin{bmatrix} 0 \\ 1 \end{bmatrix}
+= \begin{bmatrix} 0 \\ 1 \\ 0 \\ 0 \end{bmatrix},
+\end{equation}
+and applying the $X$ gate to the second qubit in a two-qubit system can be described as
+\begin{equation}
+X_2 = I \otimes X =
+\begin{bmatrix}
+0 & 1 & 0 & 0 \\
+1 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 \\
+0 & 0 & 1 & 0 \\
+\end{bmatrix}.
+\end{equation}
 
+Aside from unitary gate operations, qubits can also be measured to collapse their state into either 0 or 1.
+Measurement on a qubit $|\psi\rangle=\alpha|0\rangle+\beta|1\rangle$
+will yield 0 with probability $|\alpha|^2$ and 1 with probability $|\beta|^2$.
 
-\subsection{Client-Server Architecture}
-
-
-\subsection{OpenQasm}
+The key challenge in simulating quantum circuits is that the amount of memory required to represent and manipulate a 
+quantum state grows exponentially with the number of qubits.
+This means that while directly simulating a few qubits is relatively trivial for a classical computer,
+simulating more than 30 qubits is nearly impossible without resorting to
+complex, domain-specific optimization techniques and/or using powerful supercomputers.
 
 
 \section{Interpreter for qserver language}
