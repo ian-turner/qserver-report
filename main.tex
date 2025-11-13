@@ -154,7 +154,7 @@ or discarding a qubit without measuring it.
 
 
 
-\subsection{Simulation of Quantum Computing}
+\subsection{Simulating Quantum Circuits}
 
 An $N$-qubit quantum system can be described by a unit vector in a complex vector space of size $2^N$.
 In the case of one qubit, all possible states can be described as
@@ -211,33 +211,28 @@ simulating more than 30 qubits is nearly impossible without resorting to
 complex, domain-specific optimization techniques and/or using powerful supercomputers.
 
 
-\section{Interpreter for qserver language}
+\subsection{Simulating Proto-Quipper Programs}
+
+Proto-Quipper programs are simulated with a client-server architecture.
+The Proto-Quipper interpreter parses high-level code into quantum
+instructions in the server language, which is an assembly-like language
+similar to OpenQASM.
+The server language instructions are then sent over a network socket,
+and each instruction is executed by the server sequentially.
+The server sends back measurement results when it receives a `read' command.
 
 
-\subsection{Intro to the qserver language}
-
-\subsection{An interpreter for the qserver language in Cirq}
-
-\subsection{An interpreter for the qserver language in Qiskit}
+\section{Integrating Third-Party Simulators}
 
 
-\subsection{Some benchmark results}
-QFT, QFT adders, Cucarro adders. 
-Semi-classical QFT, Gidney's logical and adder. 
-RUS-RZ gate. (Try magic state distillation, Try quantum error correction for surface code)
-\section{Improving the efficiency of interpreter by queuing}
 
 \subsection{Idea}
 
-\subsection{Implementation details}
+\subsection{Implementation}
 
-\subsection{Benchmark results for the improvement}
+\section{Benchmark Results}
 
 \section{Related work}
-\subsection{Quipper circuits translation}
-
-\subsection{Various simulators from Cirq and Qiskit}
-
 
 \section{Conclusion and Future Work}
 
