@@ -1,11 +1,3 @@
-%\documentclass[a4paper,11pt]{article}
-%\usepackage[margin=0.5in,bottom=1in]{geometry}
-%\usepackage{graphicx} % Required for inserting images
-%\usepackage{amsmath}
-%\usepackage{hyperref}
-%\usepackage{authblk}
-%\usepackage{titling}
-
 \documentclass[letterpaper]{article}
 % DO NOT CHANGE THIS
 \usepackage[]{aaai25} % DO NOT CHANGE THIS
@@ -32,6 +24,9 @@
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{booktabs}
 \usepackage{nicematrix}
+\usepackage{tikz}
+\usepackage{circuitikz}
+
 %% Section numbering
 % \setcounter{secnumdepth}{2}
 
@@ -49,15 +44,6 @@ Engineering, University of South Carolina, Columbia, South Carolina, USA
 
 \begin{document}
 
-%\title{
-%\textbf{
-%Efficient Simulation of Proto-Quipper Programs
-%}
-%}
-%\author{Ian Turner, University of South Carolina}
-%\predate{}
-%\date{}
-%\postdate{}
 \maketitle
 
 
@@ -153,7 +139,6 @@ or discarding a qubit without measuring it.
 
 
 
-
 \subsection{Simulating Quantum Circuits}
 
 An $N$-qubit quantum system can be described by a unit vector in a complex vector space of size $2^N$.
@@ -213,22 +198,51 @@ complex, domain-specific optimization techniques and/or using powerful supercomp
 
 \subsection{Simulating Proto-Quipper Programs}
 
+\begin{figure}[!ht]
+\centering
+\resizebox{0.4\textwidth}{!}{%
+\begin{circuitikz}
+\tikzstyle{every node}=[font=\LARGE]
+\draw [ rounded corners = 4.8] (6.25,15) rectangle  node {\LARGE Client} (10.25,10.25);
+\draw [ rounded corners = 4.8] (16.25,15) rectangle  node {\LARGE Server} (20.25,10.25);
+\draw [->, >=Stealth] (10.25,14) -- (16.25,14);
+\draw [->, >=Stealth] (16.25,11.5) -- (10.25,11.5);
+\node [font=\LARGE] at (13.25,14.5) {Commands};
+\node [font=\LARGE] at (13.25,12) {Dynamic Lifting};
+\draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal Quantum State} (20,10.5);
+\end{circuitikz}
+}%
+
+\caption{Proto-Quipper simulation}
+\label{fig:sim_diagram}
+\end{figure}
+
+
 Proto-Quipper programs are simulated with a client-server architecture.
 The Proto-Quipper interpreter parses high-level code into quantum
 instructions in the server language, which is an assembly-like language
 similar to OpenQASM.
 The server language instructions are then sent over a network socket,
 and each instruction is executed by the server sequentially.
-The server sends back measurement results when it receives a `read' command.
+The server sends back measurement results only when it receives a dynamic lifting command.
+This process is shown in figure \ref{fig:sim_diagram}.
+
 
 
 \section{Integrating Third-Party Simulators}
 
+\subsection{Existing Simulators}
 
+Dozens of state-of-the-art quantum computing simulation programs exist currently \cite{jamadagni2024benchmarking}.
+They employ a variety of different simulation methods, including statevector simulation, tensor networks,
+decision trees, etc.
+For this work, we chose to work with statevector simulators, which model quantum computation using matrix-vector
+multiplication as described in the introduction of this paper.
+We chose to use qsim \cite{qai2020qsim} and Qiskit.
 
-\subsection{Idea}
+\subsection{Methods}
 
-\subsection{Implementation}
+\section{Converting to OpenQASM}
 
 \section{Benchmark Results}
 
