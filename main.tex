@@ -28,7 +28,7 @@
 \usepackage{circuitikz}
 
 %% Section numbering
-% \setcounter{secnumdepth}{2}
+\setcounter{secnumdepth}{2}
 
 
 \title{Efficient Simulation of Proto-Quipper Programs}
@@ -139,61 +139,61 @@ or discarding a qubit without measuring it.
 
 
 
-\subsection{Simulating Quantum Circuits}
-
-An $N$-qubit quantum system can be described by a unit vector in a complex vector space of size $2^N$.
-In the case of one qubit, all possible states can be described as
-\begin{equation}
-|\psi\rangle = \alpha \begin{bmatrix} 1 \\ 0 \end{bmatrix}
-+ \beta \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \alpha|0\rangle + \beta|1\rangle
-\end{equation}
-where $\alpha, \beta \in \mathbb{C}$ and $|\alpha|^2+|\beta|^2=1$ \cite{nielsen2001quantum}.
-Quantum gates can be desribed as unitary matrices that transform quantum states.
-For example, the $X$ gate swaps $|0\rangle$ states with $|1\rangle$ states;
-\begin{equation}
-X|\psi\rangle = X(\alpha|0\rangle + \beta|1\rangle) = \beta|0\rangle + \alpha|1\rangle,
-\end{equation}
-and can be written as
-\begin{equation}
-X := \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}.
-\end{equation}
-
-Multiple-qubit systems can be constructed using the tensor product.
-The tensor product is a binary operator on matrices and vectors with the following formula
-\begin{equation}
-v \otimes w :=
-\left[\begin{array}{cccc}
-v_{1} w_{1} & v_{1} w_{2} & \cdots & v_{1} w_{m} \\
-v_{2} w_{1} & v_{2} w_{2} & \cdots & v_{2} w_{m} \\
-\vdots & \vdots & \ddots & \vdots \\
-v_{n} w_{1} & v_{n} w_{2} & \cdots & v_{n} w_{m}
-\end{array}\right]
-\end{equation}
-For example, the two qubit state $|01\rangle$ can be constructed as
-\begin{equation}
-|01\rangle = |0\rangle \otimes |1\rangle = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \otimes \begin{bmatrix} 0 \\ 1 \end{bmatrix}
-= \begin{bmatrix} 0 \\ 1 \\ 0 \\ 0 \end{bmatrix},
-\end{equation}
-and applying the $X$ gate to the second qubit in a two-qubit system can be described as
-\begin{equation}
-X_2 = I \otimes X =
-\begin{bmatrix}
-0 & 1 & 0 & 0 \\
-1 & 0 & 0 & 0 \\
-0 & 0 & 0 & 1 \\
-0 & 0 & 1 & 0 \\
-\end{bmatrix}.
-\end{equation}
-
-Aside from unitary gate operations, qubits can also be measured to collapse their state into either 0 or 1.
-Measurement on a qubit $|\psi\rangle=\alpha|0\rangle+\beta|1\rangle$
-will yield 0 with probability $|\alpha|^2$ and 1 with probability $|\beta|^2$.
-
-The key challenge in simulating quantum circuits is that the amount of memory required to represent and manipulate a 
-quantum state grows exponentially with the number of qubits.
-This means that while directly simulating a few qubits is relatively trivial for a classical computer,
-simulating more than 30 qubits is nearly impossible without resorting to
-complex, domain-specific optimization techniques and/or using powerful supercomputers.
+% \subsection{Simulating Quantum Circuits}
+% 
+% An $N$-qubit quantum system can be described by a unit vector in a complex vector space of size $2^N$.
+% In the case of one qubit, all possible states can be described as
+% \begin{equation}
+% |\psi\rangle = \alpha \begin{bmatrix} 1 \\ 0 \end{bmatrix}
+% + \beta \begin{bmatrix} 0 \\ 1 \end{bmatrix} = \alpha|0\rangle + \beta|1\rangle
+% \end{equation}
+% where $\alpha, \beta \in \mathbb{C}$ and $|\alpha|^2+|\beta|^2=1$ \cite{nielsen2001quantum}.
+% Quantum gates can be desribed as unitary matrices that transform quantum states.
+% For example, the $X$ gate swaps $|0\rangle$ states with $|1\rangle$ states;
+% \begin{equation}
+% X|\psi\rangle = X(\alpha|0\rangle + \beta|1\rangle) = \beta|0\rangle + \alpha|1\rangle,
+% \end{equation}
+% and can be written as
+% \begin{equation}
+% X := \begin{bmatrix} 0 & 1 \\ 1 & 0 \end{bmatrix}.
+% \end{equation}
+% 
+% Multiple-qubit systems can be constructed using the tensor product.
+% The tensor product is a binary operator on matrices and vectors with the following formula
+% \begin{equation}
+% v \otimes w :=
+% \left[\begin{array}{cccc}
+% v_{1} w_{1} & v_{1} w_{2} & \cdots & v_{1} w_{m} \\
+% v_{2} w_{1} & v_{2} w_{2} & \cdots & v_{2} w_{m} \\
+% \vdots & \vdots & \ddots & \vdots \\
+% v_{n} w_{1} & v_{n} w_{2} & \cdots & v_{n} w_{m}
+% \end{array}\right]
+% \end{equation}
+% For example, the two qubit state $|01\rangle$ can be constructed as
+% \begin{equation}
+% |01\rangle = |0\rangle \otimes |1\rangle = \begin{bmatrix} 1 \\ 0 \end{bmatrix} \otimes \begin{bmatrix} 0 \\ 1 \end{bmatrix}
+% = \begin{bmatrix} 0 \\ 1 \\ 0 \\ 0 \end{bmatrix},
+% \end{equation}
+% and applying the $X$ gate to the second qubit in a two-qubit system can be described as
+% \begin{equation}
+% X_2 = I \otimes X =
+% \begin{bmatrix}
+% 0 & 1 & 0 & 0 \\
+% 1 & 0 & 0 & 0 \\
+% 0 & 0 & 0 & 1 \\
+% 0 & 0 & 1 & 0 \\
+% \end{bmatrix}.
+% \end{equation}
+% 
+% Aside from unitary gate operations, qubits can also be measured to collapse their state into either 0 or 1.
+% Measurement on a qubit $|\psi\rangle=\alpha|0\rangle+\beta|1\rangle$
+% will yield 0 with probability $|\alpha|^2$ and 1 with probability $|\beta|^2$.
+% 
+% The key challenge in simulating quantum circuits is that the amount of memory required to represent and manipulate a 
+% quantum state grows exponentially with the number of qubits.
+% This means that while directly simulating a few qubits is relatively trivial for a classical computer,
+% simulating more than 30 qubits is nearly impossible without resorting to
+% complex, domain-specific optimization techniques and/or using powerful supercomputers.
 
 
 \subsection{Simulating Proto-Quipper Programs}
@@ -209,7 +209,7 @@ complex, domain-specific optimization techniques and/or using powerful supercomp
 \draw [->, >=Stealth] (16.25,11.5) -- (10.25,11.5);
 \node [font=\LARGE] at (13.25,14.5) {Commands};
 \node [font=\LARGE] at (13.25,12) {Dynamic Lifting};
-\draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal Quantum State} (20,10.5);
+%%\draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal Quantum State} (20,10.5);
 \end{circuitikz}
 }%
 
@@ -236,13 +236,75 @@ This process is shown in figure \ref{fig:sim_diagram}.
 Dozens of state-of-the-art quantum computing simulation programs exist currently \cite{jamadagni2024benchmarking}.
 They employ a variety of different simulation methods, including statevector simulation, tensor networks,
 decision trees, etc.
-For this work, we chose to work with statevector simulators, which model quantum computation using matrix-vector
-multiplication as described in the introduction of this paper.
-We chose to use qsim \cite{qai2020qsim} and Qiskit.
+For this project, we chose to work with statevector simulators, which model quantum computation using matrix-vector
+multiplication.
+We integrated the simulation capabilities of the Python-based quantum computing libraries Cirq and Qiskit, given that
+they are the most commonly used and extensively developed libraries for QC,
+and both have multiple state-of-the-art simulation methods.
 
-\subsection{Methods}
+Both Qiskit and Cirq use the quantum circuit model to represent quantum circuits.
+In the quantum circuit model, a computation is carried out by starting with an array of qubits and bits
+all initialized to the 0 state, applying a series of in-place operations on those qubits and bits, and then (usually)
+measuring the entire qubit array at the end and returning the final qubit and bit states.
+The operations applied can be either unitary quantum gates or measurement gates.
+There is some support for higher-level programming constructs such as `if' and `while' statements,
+where operations can be conditioned on previous measurement outcomes,
+but these features are still experimental and are quite limited, so we do not use them in this project.
 
-\section{Converting to OpenQASM}
+The two main challenges of integrating Cirq and Qiskit into the Proto-Quipper simulation infrastructure are
+(1) Cirq and Qiskit do not allow dynamic qubit allocation; meaning ancilla qubits must be allocated during circuit generation,
+and (2) since Cirq and Qiskit both use the quantum circuit model, a circuit object must be constructed for every simulation,
+even if that `circuit' is only a single gate.
+
+
+\subsection{Integration with Proto-Quipper}
+
+
+\begin{figure*}[!ht]
+\centering
+\resizebox{1\textwidth}{!}{%
+\begin{circuitikz}
+\tikzstyle{every node}=[font=\LARGE]
+\draw [ rounded corners = 4.8] (6.25,15) rectangle  node {\LARGE Interpreter} (10.25,10.25);
+\draw [ rounded corners = 4.8] (16.25,15) rectangle  node {\LARGE Server} (20.25,10.25);
+\draw [->, >=Stealth] (16.25,11.5) -- (10.25,11.5);
+\node [font=\LARGE] at (13.25,15) {Commands};
+\node [font=\LARGE] at (13.25,12) {Dynamic Lifting};
+\draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal Quantum State} (20,10.5);
+
+
+\draw [ rounded corners = 4.8] (1,13.25) rectangle  node {\large Proto-Quipper code} (5,12);
+\draw [->, >=Stealth] (5,12.75) -- (6.25,12.75);
+\draw [ rounded corners = 4.8] (21.25,14) rectangle  node {\large OpenQASM} (24.25,12.75);
+\draw [->, >=Stealth] (20.25,13.5) -- (21.25,13.5);
+\draw [ rounded corners = 4.8] (25.75,14) rectangle  node {\large Cirq} (28.5,12.75);
+\draw [ rounded corners = 4.8] (25.75,12.25) rectangle  node {\large Qiskit} (28.5,11);
+\draw [->, >=Stealth] (24.25,13.5) -- (25.75,13.5);
+\draw [->, >=Stealth] (24.25,13.5) -- (25.75,11.75);
+\draw [ rounded corners = 4.8] (11.5,14.5) rectangle  node {\large Server language} (15,13.25);
+\draw [->, >=Stealth] (10.25,14) -- (11.5,14);
+\draw [->, >=Stealth] (15,14) -- (16.25,14);
+\draw [ rounded corners = 4.8] (21.25,12.25) rectangle  node {\large Results} (24.25,11);
+\draw [->, >=Stealth] (21.25,11.75) -- (20.25,11.75);
+\draw [->, >=Stealth] (25.75,13.25) -- (24.25,11.75);
+\draw [->, >=Stealth] (25.75,11.5) -- (24.25,11.5);
+\end{circuitikz}
+}%
+
+\label{fig:full_sim_diagram}
+\caption{Full OpenQASM-based simulation architecture}
+\end{figure*}
+
+In order to integrate Cirq and Qiskit with Proto-Quipper, a translation must be made between the server language
+generated by the Proto-Quipper interpreter and the quantum circuit model of the two libraries.
+We chose to use OpenQASM as an intermediate representation, since both Cirq and Qiskit have OpenQASM loading functions,
+which transform OpenQASM code into the circuit objects of both libraries respectively.
+The original Proto-Quipper server language is also very similar to OpenQASM in its function and syntax, making translation
+between the two very simple.
+
+
+\subsection{Converting to OpenQASM}
+
 
 \section{Benchmark Results}
 
