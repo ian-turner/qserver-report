@@ -26,6 +26,8 @@
 \usepackage{nicematrix}
 \usepackage{tikz}
 \usepackage{circuitikz}
+\usepackage{caption}
+\usepackage{subcaption}
 
 %% Section numbering
 \setcounter{secnumdepth}{2}
@@ -246,7 +248,7 @@ If the simulation currently has the state $|\psi\rangle$, then when a new qubit
 is added in state $|0\rangle$, the new simulation state will be $|0\rangle \otimes |\psi\rangle$.
 This is pictured in figure \ref{fig:qubit_init}, where the box indicates state preparation of the
 statevector $|\psi\rangle$ on the input qubits.
-The process is the same for initializing a qubit in the 1 state, except an `X' gate is applied
+The process is the same for initializing a qubit in the 1 state, except an X gate is applied
 to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\rangle$.
 
 \paragraph{Unitary Gates}
@@ -273,7 +275,7 @@ to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\ra
 }%
 
 \label{fig:unitary_gate}
-\caption{Application of a unitary $H$ gate on qubit 1 of state $|\psi\rangle$ to produce updated state $|\psi'\rangle$}
+\caption{Application of a unitary H gate on qubit 1 of state $|\psi\rangle$ to produce updated state $|\psi'\rangle$}
 \end{figure}
 
 Unitary gates can be applied in a similar manner to initialization.
@@ -327,12 +329,91 @@ This can be done by manual manipulations of the statevector using numpy.
 \end{circuitikz}
 }%
 
-\label{fig:queued_insts}
-\caption{Queued circuit with multiple qubit initialization and unitary gates}
+\label{fig:queued_circ}
+\caption{Queued circuit with initialization of a statevector $|\psi\rangle$ on qubits 3 and 4,
+initialization of qubits 1 and 2 in the $|0\rangle$ state, and several queued unitary gates,
+resulting in an updated state $|\psi'\rangle$}
 \end{figure}
 
 
-\section{Benchmarks}
+Given the fact that the server only sends back results when a read command is received, instructions need not be evaluated
+until their results are required by the client.
+This fact allows us to keep instructions in a queue, and only evaluate the accumulated
+circuit once a measurement command is received.
+This approach has several advantages.
+First, the statevector of the previous computations only has to be prepared once, at the beginning of the
+queued circuit, instead of between each instruction.
+Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
+on circuit re-writing and gate fusion \cite{elsman2025gate}.
+An example of a queued circuit is picture in figure \ref{fig:queued_circ}.
+
+
+\section{Benchmark Results}
+
+In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
+These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
+and the MaxCut QAOA algorithm \cite{farhi2014quantum}.
+We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
+We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{{ ./images/qft.png }}
+\caption{Simulation time of QFT for all simulation methods}
+\label{fig:qft}
+\end{figure}
+
+\paragraph{Quantum Fourier Transform} The results for QFT (figure \ref{fig:qft}) show that the queued versions of the Cirq and
+Qiskit simulator significantly outperform
+the original Haskell simulator as the number of qubits increases.
+The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
+to simulate 28 qubits.
+They also show that while there is some overhead associated with the interaction of the Proto-Quipper interpreter with the server,
+this overhead is almost constant as the circuit increases in size, and the simulation time of the server almost converges to the
+simulation time of the bare simulator at around 25 qubits.
+
+
+\paragraph{Binary Adders}
+
+
+\begin{figure*}[!ht]
+\begin{subfigure}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/qftadder.png }}
+    \caption{QFT adder}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/cuccaro.png }}
+    \caption{Cuccaro adder} 
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/cuccaro.png }}
+    \caption{Cuccaro adder} 
+\end{subfigure}
+\label{fig:adder_results}
+\end{figure*}
+
+
+The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for binary adders,
+as shown in figure \ref{fig:adder_results}.
+This is likely due to how the Haskell simulator stores quantum states.
+The Haskell simulator store the statevector as a map of bitstrings to amplitudes.
+For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
+This means that if the statevector is not in a superposition, then the Haskell representation needs
+only one complex number to describe it.
+This is in contrast to the Cirq and Qiskit simulators, which store the entire statevector, with $2^n$ entries (for $n$ qubits).
+As a result, the Haskell simulator will almost always outperform the Cirq and Qiskit simulators on circuits that involve
+mostly classical operations, such as adders.
+Of course, useful quantum algorithms will inevitably contain many non-classical operations, resulting in a large degree
+of superposition and entanglement, so in practice this limitation is largely irrelevant.
+
+
+\paragraph{MaxCut QAOA}
+
 
 \section{Related work}
 
