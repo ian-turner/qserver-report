@@ -165,8 +165,8 @@ This process is shown in figure \ref{fig:sim_diagram}.
 \end{circuitikz}
 }%
 
-\label{fig:full_sim_diagram}
 \caption{Full OpenQASM-based simulation architecture}
+\label{fig:full_sim_diagram}
 \end{figure*}
 
 
@@ -231,8 +231,8 @@ between the two very simple.
 \end{circuitikz}
 }%
 
-\label{fig:qubit_init}
 \caption{Example of new qubit initialization in state $|0\rangle$ with existing state $|\psi\rangle$}
+\label{fig:qubit_init}
 \end{figure}
 
 The Proto-Quipper server language contains three types of operations: qubit initialization, unitary gates, and qubit measurement.
@@ -274,8 +274,8 @@ to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\ra
 \end{circuitikz}
 }%
 
-\label{fig:unitary_gate}
 \caption{Application of a unitary H gate on qubit 1 of state $|\psi\rangle$ to produce updated state $|\psi'\rangle$}
+\label{fig:unitary_gate}
 \end{figure}
 
 Unitary gates can be applied in a similar manner to initialization.
@@ -329,8 +329,8 @@ This can be done by manual manipulations of the statevector using numpy.
 \end{circuitikz}
 }%
 
-\label{fig:queued_circ}
 \caption{Queued circuit with initialization of a statevector $|\psi\rangle$ on qubits 3 and 4,
+\label{fig:queued_circ}
 initialization of qubits 1 and 2 in the $|0\rangle$ state, and several queued unitary gates,
 resulting in an updated state $|\psi'\rangle$}
 \end{figure}
@@ -345,7 +345,7 @@ First, the statevector of the previous computations only has to be prepared once
 queued circuit, instead of between each instruction.
 Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
 on circuit re-writing and gate fusion \cite{elsman2025gate}.
-An example of a queued circuit is picture in figure \ref{fig:queued_circ}.
+An example of a queued circuit is pictured in figure \ref{fig:queued_circ}.
 
 
 \section{Benchmark Results}
@@ -391,9 +391,10 @@ simulation time of the bare simulator at around 25 qubits.
 \hfill
 \begin{subfigure}{0.32\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{{ ./images/cuccaro.png }}
-    \caption{Cuccaro adder} 
+    \includegraphics[width=\linewidth]{{ ./images/gidney.png }}
+    \caption{Gidney adder} 
 \end{subfigure}
+\caption{Simulation results for binary adders}
 \label{fig:adder_results}
 \end{figure*}
 
@@ -401,7 +402,7 @@ simulation time of the bare simulator at around 25 qubits.
 The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for binary adders,
 as shown in figure \ref{fig:adder_results}.
 This is likely due to how the Haskell simulator stores quantum states.
-The Haskell simulator store the statevector as a map of bitstrings to amplitudes.
+The Haskell simulator stores the statevector as a map of bitstrings to amplitudes.
 For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
 This means that if the statevector is not in a superposition, then the Haskell representation needs
 only one complex number to describe it.
@@ -413,6 +414,22 @@ of superposition and entanglement, so in practice this limitation is largely irr
 
 
 \paragraph{MaxCut QAOA}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{{ ./images/maxcut.png }}
+\caption{MaxCut QAOA}
+\label{fig:maxcut}
+\end{figure}
+
+The maxcut quantum approximate optimization algorithm finds the partition of a graph into two graphs such that the
+number of edges between the partitions (which are `cut') is maximized.
+This circuit is an ideal candidate for a simulation benchmark since it is one of the few algorithms that may provide
+quantum advantage in the near term, meaning quantum computers may soon be able to out-perform classical computers on this task.
+Because of this, it has been the subject of much study and development, which requires accurate and fast simulation.
+The results in figure \ref{fig:maxcut} show that the Cirq and Qiskit simulators dramatically outperform the Haskell
+simulator on this task.
+This is not surprising, since the maxcut circuit creates states with high levels of superposition and entanglement.
 
 
 \section{Related work}
