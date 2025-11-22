@@ -206,6 +206,7 @@ We chose to use OpenQASM as an intermediate representation, since both Cirq and 
 which transform OpenQASM code into the circuit objects of both libraries.
 The original Proto-Quipper server language is also very similar to OpenQASM in its function and syntax, making translation
 between the two very simple.
+A diagram of the full OpenQASM simulation architecture is pictured in figure \ref{fig:full_sim_diagram}.
 
 
 \subsection{Converting to OpenQASM}
@@ -413,14 +414,15 @@ Of course, useful quantum algorithms will inevitably contain many non-classical 
 of superposition and entanglement, so in practice this limitation is largely irrelevant.
 
 
-\paragraph{MaxCut QAOA}
-
 \begin{figure}[!ht]
 \centering
 \includegraphics[width=0.4\textwidth]{{ ./images/maxcut.png }}
 \caption{MaxCut QAOA}
 \label{fig:maxcut}
 \end{figure}
+
+
+\paragraph{MaxCut QAOA}
 
 The maxcut quantum approximate optimization algorithm finds the partition of a graph into two graphs such that the
 number of edges between the partitions (which are `cut') is maximized.
