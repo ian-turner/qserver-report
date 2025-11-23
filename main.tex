@@ -436,12 +436,25 @@ This is not surprising, since the maxcut circuit creates states with high levels
 
 \section{Related work}
 
+Other works have explored converting high-level quantum programming languages to OpenQASM in order to execute them more efficiently.
+LinguaQuanta \cite{wesley2024linguaquanta} converts Quipper circuit objects to OpenQASM,
+but only supports `boxed' circuits (which have no dynamic lifting instructions).
+The Q\# language is a similar high-level language,
+but is simulated by first compiling to quantum intermediate representation (QIR) \cite{stade2024towards},
+a low-level quantum-classical hybrid specification based on LLVM.
+Silq, another high-level language, runs on its own custom simulator,
+and cannot be run on third-party simulators or any real quantum hardware.
+
+
 \section{Conclusion and Future Work}
 
-\paragraph{Investigating MPS}
-\paragraph{Dynamic lifting to OpenQasm3}
-\paragraph{Dynamic lifting to QIR}
-
+This work presents an approach for simulating a high-level quantum programming language on state-of-the-art third-party
+quantum simulators.
+This approach extends the number of qubits able to be simulated compared to the existing Proto-Quipper simulator,
+but has some downsides when compared to the original simulator, and is still significantly limited by memory constraints.
+Future work could include integrating more advanced simulators such as tensor network simulators,
+which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
+Future work could also include compiling Proto-Quipper programs directly to a low-level intermediate format.
 
 
 \bibliography{refs.bib}
