@@ -21,6 +21,8 @@
 /TemplateVersion (2025.1)
 }
 
+
+
 \usepackage{amsmath,amsfonts,amssymb}
 \usepackage{booktabs}
 \usepackage{nicematrix}
@@ -29,6 +31,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 
+\newcommand{\ket}[1]{|#1 \rangle}
 %% Section numbering
 \setcounter{secnumdepth}{2}
 
@@ -83,18 +86,19 @@ qubit allocation.
 \subsection{Proto-Quipper with Dynamic Lifting}
 
 Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper.
-In contrast to low-level languages, Proto-Quipper contains two runtimes; circuit generation and circuit execution.
-Variables whose values are defined during circuit generation time are called \textit{parameters}, while variables
-that are defined during circuit execution time are called \textit{states}.
+Proto-Quipper contains two runtimes; circuit generation and circuit execution.
+Variables whose values are determined during circuit generation time are called \textit{parameters}, while variables
+that are determined during circuit execution time are called \textit{states}.
 Dynamic lifting allows for state variables to be `lifted' to parameters variables.
 This can be used to lift circuit measurement results from the circuit execution runtime back into the circuit
 generation runtime in order to modify the generation of the next circuit.
 This allows for quantum and classical instructions to be interleaved seamlessly.
 
-Proto-Quipper also enforces a typing system, which ensures program correctness through type checking.
-The types \textbf{Qubit} and \textbf{Bit} are considered \textit{linear}, meaning they cannot be duplicated
+Proto-Quipper also enforces static typing, which checks
+if a circuit generating program is well-typed, ensuring the generated quantum circuit is well-formed.
+The types \textbf{Qubit} and \textbf{Bit} are considered \textit{linear resource}, meaning they cannot be duplicated
 or discarded.
-This prevents runtime/logic errors that can occur in low-level languages such as attempting to duplicate a qubit
+This prevents runtime/logical errors that can occur in low-level languages such as attempting to duplicate a qubit
 or discarding a qubit without measuring it.
 
 
@@ -121,13 +125,13 @@ or discarding a qubit without measuring it.
 
 
 Proto-Quipper programs are simulated with a client-server architecture.
-The Proto-Quipper interpreter parses high-level code into quantum
-instructions in the server language, which is an assembly-like language
+The Proto-Quipper interpreter evaluates high-level code into low-level quantum
+instructions in the server language, called QServer, which is an assembly-like language
 similar to OpenQASM.
-The server language instructions are then sent over a network socket,
+The QServer instructions are then sent over a network socket,
 and each instruction is executed by the server sequentially.
 The server sends back measurement results only when it receives a dynamic lifting command.
-This process is shown in figure \ref{fig:sim_diagram}.
+This process is shown in Figure \ref{fig:sim_diagram}.
 
 
 
@@ -139,7 +143,7 @@ This process is shown in figure \ref{fig:sim_diagram}.
 \resizebox{0.9\textwidth}{!}{%
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\LARGE]
-\draw [ rounded corners = 4.8] (6.25,15) rectangle  node {\LARGE Interpreter} (10.25,10.25);
+\draw [ rounded corners = 4.8, align=left] (6.25,15) rectangle  node {Proto-Quipper \\ Interpreter} (10.25,10.25);
 \draw [ rounded corners = 4.8] (16.25,15) rectangle  node {\LARGE Server} (20.25,10.25);
 \draw [->, >=Stealth] (16.25,11.5) -- (10.25,11.5);
 \node [font=\LARGE] at (13.25,15) {Commands};
@@ -147,7 +151,7 @@ This process is shown in figure \ref{fig:sim_diagram}.
 \draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal Quantum State} (20,10.5);
 
 
-\draw [ rounded corners = 4.8] (1,13.25) rectangle  node {\large Proto-Quipper code} (5,12);
+\draw [ rounded corners = 4.8] (1,13.25) rectangle  node {\small Proto-Quipper source code} (5,12);
 \draw [->, >=Stealth] (5,12.75) -- (6.25,12.75);
 \draw [ rounded corners = 4.8] (21.25,14) rectangle  node {\large OpenQASM} (24.25,12.75);
 \draw [->, >=Stealth] (20.25,13.5) -- (21.25,13.5);
@@ -155,13 +159,14 @@ This process is shown in figure \ref{fig:sim_diagram}.
 \draw [ rounded corners = 4.8] (25.75,12.25) rectangle  node {\large Qiskit} (28.5,11);
 \draw [->, >=Stealth] (24.25,13.5) -- (25.75,13.5);
 \draw [->, >=Stealth] (24.25,13.25) -- (25.75,11.75);
-\draw [ rounded corners = 4.8] (11.5,14.5) rectangle  node {\large Server language} (15,13.25);
+\draw [ rounded corners = 4.8] (11.5,14.5) rectangle  node {\large QServer language} (15,13.25);
 \draw [->, >=Stealth] (10.25,14) -- (11.5,14);
 \draw [->, >=Stealth] (15,14) -- (16.25,14);
 \draw [ rounded corners = 4.8] (21.25,12.25) rectangle  node {\large Results} (24.25,11);
 \draw [->, >=Stealth] (21.25,11.75) -- (20.25,11.75);
 \draw [->, >=Stealth] (25.75,13.25) -- (24.25,11.75);
 \draw [->, >=Stealth] (25.75,11.5) -- (24.25,11.5);
+\node [font=\scriptsize] at (21.15,10.6) {Update States};
 \end{circuitikz}
 }%
 
@@ -178,17 +183,18 @@ decision trees, etc.
 For this project, we chose to work with statevector simulators, which model quantum computation using matrix-vector
 multiplication.
 We integrated the simulation capabilities of the Python-based quantum computing libraries Cirq and Qiskit, given that
-they are the most commonly used and extensively developed libraries for QC,
+they are the most commonly used and extensively developed libraries for quantum computing,
 and both have multiple state-of-the-art simulation methods.
 
-Both Qiskit and Cirq use the quantum circuit model to represent quantum circuits.
-In the quantum circuit model, a computation is carried out by starting with an array of qubits and bits
-all initialized to the 0 state, applying a series of in-place operations on those qubits and bits, and then (usually)
+In Qiskit and Cirq, the programs that
+generate quantum circuits are usually structured
+by the following: they start with an array of qubits and bits
+all initialized to the $\ket{0}$ state, then we apply a series of in-place operations on those qubits and bits, and then (usually)
 measuring the entire qubit array at the end and returning the final qubit and bit states.
 The operations applied can be either unitary quantum gates or measurement gates.
 There is some support for higher-level programming constructs such as `if' and `while' statements,
-where operations can be conditioned on previous measurement outcomes,
-but these features are still experimental and are quite limited, so we do not use them in this project.
+where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits} in Qiskit. 
+But these features are still experimental and are quite limited, so we do not use them in this project.
 
 
 \subsection{Integration with Proto-Quipper}
@@ -200,13 +206,13 @@ even if that `circuit' is only a single gate, and (3) in Proto-Quipper, measurem
 and convert it into a bit, while in Cirq and Qiskit measurements simply collapse the qubit into a classical state,
 and copy the measurement result onto a separate bit register.
 
-In order to integrate Cirq and Qiskit with Proto-Quipper, a translation must be made between the server language
-generated by the Proto-Quipper interpreter and the quantum circuit model of the two libraries.
+In order to integrate Cirq and Qiskit with Proto-Quipper, we must translate the QServer language
+generated by the Proto-Quipper interpreter to the quantum circuit objects of the two libraries.
 We chose to use OpenQASM as an intermediate representation, since both Cirq and Qiskit have OpenQASM loading functions,
-which transform OpenQASM code into the circuit objects of both libraries.
-The original Proto-Quipper server language is also very similar to OpenQASM in its function and syntax, making translation
+which transform OpenQASM code into the circuit objects.
+The QServer language is very similar to OpenQASM in its function and syntax, making translation
 between the two very simple.
-A diagram of the full OpenQASM simulation architecture is pictured in figure \ref{fig:full_sim_diagram}.
+A diagram of the full OpenQASM simulation architecture is pictured in Figure \ref{fig:full_sim_diagram}.
 
 
 \subsection{Converting to OpenQASM}
@@ -236,18 +242,18 @@ A diagram of the full OpenQASM simulation architecture is pictured in figure \re
 \label{fig:qubit_init}
 \end{figure}
 
-The Proto-Quipper server language contains three types of operations: qubit initialization, unitary gates, and qubit measurement.
-There is also the `read' instruction, which lifts a bit from the server internal state back into the interpreter environment
+The QServer language contains three types of quantum operations: qubit initialization, unitary gates, and qubit measurement.
+More importantly, it also has the `read' instruction, which lifts a bit from the server internal state back into the interpreter environment
 to be used in further circuit generation.
 When the server receives a read instruction, it must pause simulation and hold the current simulation state in memory,
-send the result back to the client, and wait for further instructions to continue the simulation.
+send the measurement result back to the client, and wait for further instructions to continue the simulation.
 
 \paragraph{Qubit Initialization}
 
 Qubits can be initialized into either the $|0\rangle$ or the $|1\rangle$ states.
 If the simulation currently has the state $|\psi\rangle$, then when a new qubit
 is added in state $|0\rangle$, the new simulation state will be $|0\rangle \otimes |\psi\rangle$.
-This is pictured in figure \ref{fig:qubit_init}, where the box indicates state preparation of the
+This is pictured in Figure \ref{fig:qubit_init}, where the box indicates state preparation of the
 statevector $|\psi\rangle$ on the input qubits.
 The process is the same for initializing a qubit in the 1 state, except an X gate is applied
 to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\rangle$.
@@ -284,7 +290,7 @@ The current simulation state $|\psi\rangle$ is passed in using a state preparati
 and unitary gates are applied to the qubits.
 The updated state $|\psi'\rangle$ is then extracted from the simulation results as a statevector,
 and stored in memory for use in future computations.
-An example of this is pictured in figure \ref{fig:unitary_gate}.
+An example of this is pictured in Figure \ref{fig:unitary_gate}.
 
 
 \paragraph{Measurements}
@@ -346,7 +352,7 @@ First, the statevector of the previous computations only has to be prepared once
 queued circuit, instead of between each instruction.
 Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
 on circuit re-writing and gate fusion \cite{elsman2025gate}.
-An example of a queued circuit is pictured in figure \ref{fig:queued_circ}.
+An example of a queued circuit is pictured in Figure \ref{fig:queued_circ}.
 
 
 \section{Benchmark Results}
@@ -364,7 +370,7 @@ We also compile the benchmark circuits to OpenQASM and run them directly on the 
 \label{fig:qft}
 \end{figure}
 
-\paragraph{Quantum Fourier Transform} The results for QFT (figure \ref{fig:qft}) show that the queued versions of the Cirq and
+\paragraph{Quantum Fourier Transform} The results for QFT (Figure \ref{fig:qft}) show that the queued versions of the Cirq and
 Qiskit simulator significantly outperform
 the original Haskell simulator as the number of qubits increases.
 The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
@@ -401,7 +407,7 @@ simulation time of the bare simulator at around 25 qubits.
 
 
 The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for binary adders,
-as shown in figure \ref{fig:adder_results}.
+as shown in Figure \ref{fig:adder_results}.
 This is likely due to how the Haskell simulator stores quantum states.
 The Haskell simulator stores the statevector as a map of bitstrings to amplitudes.
 For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
@@ -429,7 +435,7 @@ number of edges between the partitions (which are `cut') is maximized.
 This circuit is an ideal candidate for a simulation benchmark since it is one of the few algorithms that may provide
 quantum advantage in the near term, meaning quantum computers may soon be able to out-perform classical computers on this task.
 Because of this, it has been the subject of much study and development, which requires accurate and fast simulation.
-The results in figure \ref{fig:maxcut} show that the Cirq and Qiskit simulators dramatically outperform the Haskell
+The results in Figure \ref{fig:maxcut} show that the Cirq and Qiskit simulators dramatically outperform the Haskell
 simulator on this task.
 This is not surprising, since the maxcut circuit creates states with high levels of superposition and entanglement.
 
@@ -461,3 +467,8 @@ Future work could also include compiling Proto-Quipper programs directly to a lo
 
 \end{document}
 
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
