@@ -2,10 +2,12 @@
 
 --2.-- Add contribution section (itemized 1, 2, 3, so on) and github code
 
-3. Show non-queueing in graphs for benchmarks
+--3.-- Show non-queueing in graphs for benchmarks
 
-4. Talk about how conversion to openqasm is done with python
+4. Link github code
 
-5. Add label to large diagrams referencing sections
+5. Talk about how conversion to openqasm is done with python
 
-6. Talk about how cirq and qiskit load to openqasm (two column with cirq and qiskit code for loading and simulating openqasm circuit)
+6. Add label to large diagrams referencing sections
+
+7. Talk about how cirq and qiskit load to openqasm (two column with cirq and qiskit code for loading and simulating openqasm circuit)
