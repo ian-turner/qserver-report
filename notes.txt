@@ -1,11 +1,11 @@
-1. talk about how high level languages have type checking
+--1.-- talk about how high level languages have type checking
 
-2. Talk about how conversion to openqasm is done with python
+--2.-- Add contribution section (itemized 1, 2, 3, so on) and github code
 
-3. Add label to large diagrams referencing sections
+3. Show non-queueing in graphs for benchmarks
 
-4. Talk about how cirq and qiskit load to openqasm (two column with cirq and qiskit code for loading and simulating openqasm circuit)
+4. Talk about how conversion to openqasm is done with python
 
-5. Add contribution section (itemized 1, 2, 3, so on) and github code
+5. Add label to large diagrams referencing sections
 
-6. Show non-queueing in graphs for benchmarks
+6. Talk about how cirq and qiskit load to openqasm (two column with cirq and qiskit code for loading and simulating openqasm circuit)
