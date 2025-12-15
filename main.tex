@@ -176,11 +176,10 @@ This process is shown in Figure \ref{fig:sim_diagram}.
 \draw [ rounded corners = 4.8] (11.5,14.5) rectangle  node {\large QServer language} (15,13.25);
 \draw [->, >=Stealth] (10.25,14) -- (11.5,14);
 \draw [->, >=Stealth] (15,14) -- (16.25,14);
-\draw [ rounded corners = 4.8] (21.25,12.25) rectangle  node {\large Results} (24.25,11);
+\draw [ rounded corners = 4.8] (21.25,12.25) rectangle  node {\large State, bit results} (24.25,11);
 \draw [->, >=Stealth] (21.25,11.75) -- (20.25,11.75);
 \draw [->, >=Stealth] (25.75,13.25) -- (24.25,11.75);
 \draw [->, >=Stealth] (25.75,11.5) -- (24.25,11.5);
-\node [font=\scriptsize] at (21.15,10.6) {Update States};
 \end{circuitikz}
 }%
 
@@ -233,6 +232,13 @@ A diagram of the full OpenQASM simulation architecture is pictured in Figure \re
 
 \begin{figure}[!ht]
 \centering
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+qc = QuantumCircuit(4)
+qc.initialize(phi, [1, 2, 3])
+result = sim.run(qc).result()
+updated_state = result.get_statevector()
+\end{lstlisting}
 \resizebox{0.4\textwidth}{!}{%
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\LARGE]
@@ -252,7 +258,8 @@ A diagram of the full OpenQASM simulation architecture is pictured in Figure \re
 \end{circuitikz}
 }%
 
-\caption{Example of new qubit initialization in state $|0\rangle$ with existing state $|\psi\rangle$}
+\caption{Example of new qubit initialization in state $|0\rangle$ with existing two-qubit state $|\psi\rangle$
+	using Qiskit in Python}
 \label{fig:qubit_init}
 \end{figure}
 
@@ -316,8 +323,7 @@ bs[1] = measure qs[1];
 Qubits can be initialized into either the $|0\rangle$ or the $|1\rangle$ states.
 If the simulation currently has the state $|\psi\rangle$, then when a new qubit
 is added in state $|0\rangle$, the new simulation state will be $|0\rangle \otimes |\psi\rangle$.
-This is pictured in Figure \ref{fig:qubit_init}, where the box indicates state preparation of the
-statevector $|\psi\rangle$ on the input qubits.
+This is pictured in Figure \ref{fig:qubit_init}.
 The process is the same for initializing a qubit in the 1 state, except an X gate is applied
 to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\rangle$.
 
@@ -325,6 +331,19 @@ to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\ra
 
 \begin{figure}[!ht]
 \centering
+
+
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+qc = QuantumCircuit(3)
+qc.initialize(phi, [0, 1, 2])
+qc.h(0)
+result = sim.run(qc).result()
+phi_updated = result.get_statevector()
+\end{lstlisting}
+
+
+
 \resizebox{0.4\textwidth}{!}{%
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\large]
@@ -370,6 +389,22 @@ This can be done by manual manipulations of the statevector using numpy.
 
 \begin{figure}[!ht]
 \centering
+
+
+
+\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+qc = QuantumCircuit(4)
+qc.initialize(phi, [2, 3])
+qc.h(2)
+qc.s(3)
+qc.cx(2, 1)
+qc.cx(1, 3)
+result = sim.run(qc).result()
+phi_updated = result.get_statevector()
+\end{lstlisting}
+
+
+
 \resizebox{0.4\textwidth}{!}{%
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\LARGE]
@@ -414,17 +449,13 @@ This approach has several advantages.
 First, the statevector of the previous computations only has to be prepared once, at the beginning of the
 queued circuit, instead of between each instruction.
 Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
-on circuit re-writing and gate fusion \cite{elsman2025gate}.
-An example of a queued circuit is pictured in Figure \ref{fig:queued_circ}.
+on circuit re-writing and gate fusion \cite{elsman2025gate}
+And third, it allows the simulator architecture to be highly modular, since any simulator that accepts the OpenQASM
+format can be integrated easily without the need for a new translator to be built from scratch.
+An example of the queuing process is pictured in Figure \ref{fig:queued_circ}.
 
 
 \section{Benchmark Results}
-
-In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
-These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
-and the MaxCut QAOA algorithm \cite{farhi2014quantum}.
-We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
-We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
 
 \begin{figure}[!ht]
 \centering
@@ -432,18 +463,6 @@ We also compile the benchmark circuits to OpenQASM and run them directly on the 
 \caption{Simulation time of QFT for all simulation methods}
 \label{fig:qft}
 \end{figure}
-
-\paragraph{Quantum Fourier Transform} The results for QFT (Figure \ref{fig:qft}) show that the queued versions of the Cirq and
-Qiskit simulator significantly outperform
-the original Haskell simulator as the number of qubits increases.
-The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
-to simulate 28 qubits.
-They also show that while there is some overhead associated with the interaction of the Proto-Quipper interpreter with the server,
-this overhead is almost constant as the circuit increases in size, and the simulation time of the server almost converges to the
-simulation time of the bare simulator at around 25 qubits.
-
-
-\paragraph{Binary Adders}
 
 
 \begin{figure*}[!ht]
@@ -467,6 +486,24 @@ simulation time of the bare simulator at around 25 qubits.
 \caption{Simulation results for binary adders}
 \label{fig:adder_results}
 \end{figure*}
+
+In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
+These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
+and the MaxCut QAOA algorithm \cite{farhi2014quantum}.
+We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
+We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
+
+\paragraph{Quantum Fourier Transform} The results for QFT (Figure \ref{fig:qft}) show that the queued versions of the Cirq and
+Qiskit simulator significantly outperform
+the original Haskell simulator as the number of qubits increases.
+The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
+to simulate 28 qubits.
+They also show that while there is some overhead associated with the interaction of the Proto-Quipper interpreter with the server,
+this overhead is almost constant as the circuit increases in size, and the simulation time of the server almost converges to the
+simulation time of the bare simulator at around 25 qubits.
+
+
+\paragraph{Binary Adders}
 
 
 The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for binary adders,
