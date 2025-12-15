@@ -262,6 +262,55 @@ to be used in further circuit generation.
 When the server receives a read instruction, it must pause simulation and hold the current simulation state in memory,
 send the measurement result back to the client, and wait for further instructions to continue the simulation.
 
+
+\begin{figure*}[!ht]
+	\centering
+	\begin{subfigure}{0.4\textwidth}
+		\centering
+\begin{lstlisting}[language=Haskell,basicstyle=\small\ttfamily]
+bell00 : !(Unit -> Qubit * Qubit)
+bell00 x = let a = H (Init0 ())
+	       b = Init0 ()
+	       (b, a) = CNot b a
+	   in (a, b)
+
+main : Bool * Bool
+main = let (a, b) = bell00 ()
+       in (dynlift (Meas a),
+           dynlift (Meas b))
+\end{lstlisting}
+		\caption{Proto-Quipper code}
+	\end{subfigure}
+	\begin{subfigure}{0.18\textwidth}
+		\centering
+\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
+Q 0
+H 0
+Q 1
+CNOT 1 0
+M 0
+R 0
+M 1
+R 1
+\end{lstlisting}
+		\caption{QServer code}
+	\end{subfigure}
+	\begin{subfigure}{0.24\textwidth}
+		\centering
+		\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
+qubit[2] qs;
+bit[2] bs;
+h qs[0];
+cx qs[0], qs[1];
+bs[0] = measure qs[0];
+bs[1] = measure qs[1];
+\end{lstlisting}
+		\caption{OpenQASM code}
+	\end{subfigure}
+	\label{fig:code_comparison}
+	\caption{Comparison of code between Proto-Quipper, QServer and OpenQASM}
+\end{figure*}
+
 \paragraph{Qubit Initialization}
 
 Qubits can be initialized into either the $|0\rangle$ or the $|1\rangle$ states.
@@ -315,54 +364,6 @@ and a qubit index and return the collapsed statevector and measurement result.
 Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
 qubit from the updated statevector returned from the measure function.
 This can be done by manual manipulations of the statevector using numpy.
-
-
-\begin{figure*}[!ht]
-	\centering
-	\begin{subfigure}{0.4\textwidth}
-		\centering
-\begin{lstlisting}[language=Haskell,basicstyle=\small\ttfamily]
-bell00 : !(Unit -> Qubit * Qubit)
-bell00 x = let a = H (Init0 ())
-	       b = Init0 ()
-	       (b, a) = CNot b a
-	   in (a, b)
-
-main = let (a, b) = bell00 ()
-       in (dynlift (Meas a),
-           dynlift (Meas b))
-\end{lstlisting}
-		\caption{Proto-Quipper code}
-	\end{subfigure}
-	\begin{subfigure}{0.18\textwidth}
-		\centering
-\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
-Q 0
-H 0
-Q 1
-CNOT 1 0
-M 0
-R 0
-M 1
-R 1
-\end{lstlisting}
-		\caption{QServer code}
-	\end{subfigure}
-	\begin{subfigure}{0.24\textwidth}
-		\centering
-		\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
-qubit[2] qs;
-bit[2] bs;
-h qs[0];
-cx qs[0], qs[1];
-bs[0] = measure qs[0];
-bs[1] = measure qs[1];
-\end{lstlisting}
-		\caption{OpenQASM code}
-	\end{subfigure}
-	\label{fig:code_comparison}
-	\caption{Comparison of code between Proto-Quipper, QServer and OpenQASM}
-\end{figure*}
 
 
 \subsection{Instruction Queuing}
@@ -523,6 +524,12 @@ but has some downsides when compared to the original simulator, and is still sig
 Future work could include integrating more advanced simulators such as tensor network simulators,
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
 Future work could also include compiling Proto-Quipper programs directly to a low-level intermediate format.
+
+\begin{links}
+    \link{Code}{https://github.com/ian-turner/pyqserver}
+%     \link{Datasets}{https://aaai.org/example/datasets}
+%     \link{Extended version}{https://aaai.org/example/extended-version}
+\end{links}
 
 
 \bibliography{refs.bib}
