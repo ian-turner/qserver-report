@@ -31,6 +31,7 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{listings}
+\usepackage{hyperref}
 
 \newcommand{\ket}[1]{|#1 \rangle}
 %% Section numbering
@@ -69,7 +70,11 @@ Engineering, University of South Carolina, Columbia, South Carolina, USA
 \end{abstract}
 
 
-\section{Contributions}
+
+\section{Introduction}
+
+
+\subsection{Contributions}
 
 \begin{enumerate}
 	\item Describe the difficulties of integrating high-level quantum programming languages
@@ -78,11 +83,11 @@ Engineering, University of South Carolina, Columbia, South Carolina, USA
 		with third-party simulators from Cirq and Qiskit through conversion to OpenQASM
 	\item Implement optimization of simulations through instruction queuing and benchmark the
 		performance improvement
+
 \end{enumerate}
 
-
-
-\section{Introduction}
+Code available at: \href{https://github.com/ian-turner/pyqserver}
+{https://github.com/ian-turner/pyqserver}
 
 
 \subsection{Quantum Programming Languages}
@@ -258,8 +263,8 @@ updated_state = result.get_statevector()
 \end{circuitikz}
 }%
 
-\caption{Example of new qubit initialization in state $|0\rangle$ with existing two-qubit state $|\psi\rangle$
-	using Qiskit in Python}
+\caption{Example of new qubit initialization in state $|0\rangle$ with existing state $|\psi\rangle$
+	using Qiskit in Python. Here $\ket{\psi}$ is a three-qubit state, and the resulting output state is a four-qubit state.}
 \label{fig:qubit_init}
 \end{figure}
 
@@ -562,11 +567,11 @@ Future work could include integrating more advanced simulators such as tensor ne
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
 Future work could also include compiling Proto-Quipper programs directly to a low-level intermediate format.
 
-\begin{links}
-    \link{Code}{https://github.com/ian-turner/pyqserver}
-%     \link{Datasets}{https://aaai.org/example/datasets}
-%     \link{Extended version}{https://aaai.org/example/extended-version}
-\end{links}
+%\begin{links}
+%    \link{Code}{https://github.com/ian-turner/pyqserver}
+%%     \link{Datasets}{https://aaai.org/example/datasets}
+%%     \link{Extended version}{https://aaai.org/example/extended-version}
+%\end{links}
 
 
 \bibliography{refs.bib}
