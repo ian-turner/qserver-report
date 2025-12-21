@@ -241,6 +241,7 @@ A diagram of the full OpenQASM simulation architecture is pictured in Figure \re
 \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
 qc = QuantumCircuit(4)
 qc.initialize(phi, [1, 2, 3])
+qc.x(0)
 result = sim.run(qc).result()
 updated_state = result.get_statevector()
 \end{lstlisting}
@@ -248,6 +249,7 @@ updated_state = result.get_statevector()
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\LARGE]
 \draw  (6.75,19.25) rectangle  node {\LARGE $|\psi\rangle$} (8.75,17.25);
+\draw  (7.35,20.1) rectangle  node {\LARGE X} (8.1,19.4);
 \draw [short] (4.75,19) -- (6.75,19);
 \draw [short] (4.75,18.25) -- (6.75,18.25);
 \draw [short] (4.75,17.5) -- (6.75,17.5);
@@ -257,14 +259,16 @@ updated_state = result.get_statevector()
 \draw [short] (8.75,19) -- (10.75,19);
 \draw [short] (8.75,18.25) -- (10.75,18.25);
 \draw [short] (8.75,17.5) -- (10.75,17.5);
-\draw [short] (4.75,19.75) -- (10.75,19.75);
+\draw [short] (4.75,19.75) -- (7.35,19.75);
+\draw [short] (8.1,19.75) -- (10.75,19.75);
 \node [font=\Large] at (4.25,19.75) {$|0\rangle$};
-\node [font=\Large] at (11.75,18.5) {$|0\rangle \otimes |\psi\rangle$};
+\node [font=\Large] at (11.75,18.5) {$|1\rangle \otimes |\psi\rangle$};
 \end{circuitikz}
 }%
 
-\caption{Example of new qubit initialization in state $|0\rangle$ with existing state $|\psi\rangle$
-	using Qiskit in Python. Here $\ket{\psi}$ is a three-qubit state, and the resulting output state is a four-qubit state.}
+\caption{Example of new qubit initialization in state $|1\rangle$ with existing state $|\psi\rangle$
+	using Qiskit in Python. Here $\ket{\psi}$ is a three-qubit state, and the resulting output state is the four-qubit state
+    $\ket{1} \otimes \ket{\psi}$.}
 \label{fig:qubit_init}
 \end{figure}
 
@@ -396,53 +400,109 @@ This can be done by manual manipulations of the statevector using numpy.
 \centering
 
 
+\begin{subfigure}{0.48\textwidth}
+    \centering
+    \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+    # Inst 1: initialize qubit
+    qc = QuantumCircuit(3)
+    qc.initialize(phi, [1, 2])
+    result = sim.run(qc).result()
+    phi = result.get_statevector()
 
-\begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-qc = QuantumCircuit(4)
-qc.initialize(phi, [2, 3])
-qc.h(2)
-qc.s(3)
-qc.cx(2, 1)
-qc.cx(1, 3)
-result = sim.run(qc).result()
-phi_updated = result.get_statevector()
-\end{lstlisting}
+    # Inst 2: initialize qubit
+    qc = QuantumCircuit(4)
+    qc.initialize(phi, [1, 2, 3])
+    result = sim.run(qc).result()
+    phi = result.get_statevector()
+
+    # Inst 3: H gate on qubit 2
+    qc = QuantumCircuit(4)
+    qc.initialize(phi, [0, 1, 2, 3])
+    qc.h(2)
+    result = sim.run(qc).result()
+    phi = result.get_statevector()
+
+    # Inst 4: S gate on qubit 3
+    qc = QuantumCircuit(4)
+    qc.initialize(phi, [0, 1, 2, 3])
+    qc.s(3)
+    result = sim.run(qc).result()
+    phi = result.get_statevector()
+
+    # Inst 5: CNOT gate on qubits 2,0
+    qc = QuantumCircuit(4)
+    qc.initialize(phi, [0, 1, 2, 3])
+    qc.cx(2, 0)
+    result = sim.run(qc).result()
+    phi = result.get_statevector()
+
+    # Inst 6: CNOT gate on qubits 1,3
+    qc = QuantumCircuit(4)
+    qc.initialize(phi, [0, 1, 2, 3])
+    qc.cx(2, 0)
+    result = sim.run(qc).result()
+    phi = result.get_statevector()
+    \end{lstlisting}
 
 
 
-\resizebox{0.4\textwidth}{!}{%
-\begin{circuitikz}
-\tikzstyle{every node}=[font=\LARGE]
-\draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
-\draw [short] (7.25,14.25) -- (7.75,14.25);
-\draw [short] (7.25,13.5) -- (7.75,13.5);
-\node [font=\Large] at (6.75,14.25) {$|0\rangle$};
-\node [font=\Large] at (6.75,13.5) {$|0\rangle$};
-\node [font=\LARGE] at (13.5,14.5) {$|\psi'\rangle$};
-\draw  (9.5,14.5) rectangle  node {\large H} (10,14);
-\draw [short] (9,14.25) -- (9.5,14.25);
-\draw [short] (9,13.5) -- (10.25,13.5);
-\node [font=\Large] at (6.75,15.75) {$|0\rangle$};
-\node [font=\Large] at (6.75,15) {$|0\rangle$};
-\draw [short] (7.25,15) -- (12.75,15);
-\draw [short] (7.25,15.75) -- (12.75,15.75);
-\draw  (10.25,13.75) rectangle  node {\large S} (10.75,13.25);
-\node [font=\LARGE] at (9.75,13.75) {};
-\draw [short] (10,14.25) -- (12.75,14.25);
-\draw [short] (10.75,13.5) -- (12.75,13.5);
-\draw [short] (11.25,15.875) -- (11.25,14.15);
-\draw [ fill={rgb,255:red,0; green,0; blue,0} ] (11.25,14.25) circle (0.1cm);
-\draw  (11.25,15.75) circle (0.125cm);
-\draw [short] (12.25,15.1) -- (12.25,13.375);
-\draw [ fill={rgb,255:red,0; green,0; blue,0} ] (12.25,15) circle (0.1cm);
-\draw  (12.25,13.5) circle (0.125cm);
-\end{circuitikz}
-}%
+\caption{Unqueued execution of circuit in Qiskit.
+Here each instruction requires a new circuit to be created and
+run through the simulator.}
+\end{subfigure}
 
-\caption{Queued circuit with initialization of a statevector $|\psi\rangle$ on qubits 3 and 4,
+
+\begin{subfigure}{0.48\textwidth}
+    \centering
+    \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+    # Run all instructions at once
+    qc = QuantumCircuit(4)
+    qc.initialize(phi, [2, 3])
+    qc.h(2)
+    qc.s(3)
+    qc.cx(2, 1)
+    qc.cx(1, 3)
+    result = sim.run(qc).result()
+    phi_updated = result.get_statevector()
+    \end{lstlisting}
+
+
+
+    \resizebox{0.8\textwidth}{!}{%
+    \begin{circuitikz}
+    \tikzstyle{every node}=[font=\LARGE]
+    \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
+    \draw [short] (7.25,14.25) -- (7.75,14.25);
+    \draw [short] (7.25,13.5) -- (7.75,13.5);
+    \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
+    \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
+    \node [font=\LARGE] at (13.5,14.5) {$|\psi'\rangle$};
+    \draw  (9.5,14.5) rectangle  node {\large H} (10,14);
+    \draw [short] (9,14.25) -- (9.5,14.25);
+    \draw [short] (9,13.5) -- (10.25,13.5);
+    \node [font=\Large] at (6.75,15.75) {$|0\rangle$};
+    \node [font=\Large] at (6.75,15) {$|0\rangle$};
+    \draw [short] (7.25,15) -- (12.75,15);
+    \draw [short] (7.25,15.75) -- (12.75,15.75);
+    \draw  (10.25,13.75) rectangle  node {\large S} (10.75,13.25);
+    \node [font=\LARGE] at (9.75,13.75) {};
+    \draw [short] (10,14.25) -- (12.75,14.25);
+    \draw [short] (10.75,13.5) -- (12.75,13.5);
+    \draw [short] (11.25,15.875) -- (11.25,14.15);
+    \draw [ fill={rgb,255:red,0; green,0; blue,0} ] (11.25,14.25) circle (0.1cm);
+    \draw  (11.25,15.75) circle (0.125cm);
+    \draw [short] (12.25,15.1) -- (12.25,13.375);
+    \draw [ fill={rgb,255:red,0; green,0; blue,0} ] (12.25,15) circle (0.1cm);
+    \draw  (12.25,13.5) circle (0.125cm);
+    \end{circuitikz}
+    }%
+    \caption{Queued circuit with initialization of a statevector $|\psi\rangle$ on qubits 3 and 4,
+    initialization of qubits 1 and 2 in the $|0\rangle$ state, and several queued unitary gates,
+    resulting in an updated state $|\psi'\rangle$.}
+\end{subfigure}
+
+\caption{Comparison between queued and un-queued circuits}
 \label{fig:queued_circ}
-initialization of qubits 1 and 2 in the $|0\rangle$ state, and several queued unitary gates,
-resulting in an updated state $|\psi'\rangle$}
 \end{figure}
 
 
@@ -454,10 +514,8 @@ This approach has several advantages.
 First, the statevector of the previous computations only has to be prepared once, at the beginning of the
 queued circuit, instead of between each instruction.
 Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
-on circuit re-writing and gate fusion \cite{elsman2025gate}
-And third, it allows the simulator architecture to be highly modular, since any simulator that accepts the OpenQASM
-format can be integrated easily without the need for a new translator to be built from scratch.
-An example of the queuing process is pictured in Figure \ref{fig:queued_circ}.
+on circuit re-writing and gate fusion \cite{elsman2025gate}.
+An example of instruction queueing is pictured in Figure \ref{fig:queued_circ}.
 
 
 \section{Benchmark Results}
@@ -567,19 +625,7 @@ Future work could include integrating more advanced simulators such as tensor ne
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
 Future work could also include compiling Proto-Quipper programs directly to a low-level intermediate format.
 
-%\begin{links}
-%    \link{Code}{https://github.com/ian-turner/pyqserver}
-%%     \link{Datasets}{https://aaai.org/example/datasets}
-%%     \link{Extended version}{https://aaai.org/example/extended-version}
-%\end{links}
-
 
 \bibliography{refs.bib}
 
 \end{document}
-
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: t
-%%% End:
