@@ -143,20 +143,6 @@ or discarding a qubit without measuring it.
 \end{figure}
 
 
-Proto-Quipper programs are simulated with a client-server architecture.
-The Proto-Quipper interpreter evaluates high-level code into low-level quantum
-instructions in the server language, called QServer, which is an assembly-like language
-similar to OpenQASM.
-The QServer instructions are then sent over a network socket,
-and each instruction is executed by the server sequentially.
-The server sends back measurement results only when it receives a dynamic lifting command.
-This process is shown in Figure \ref{fig:sim_diagram}.
-
-
-
-\section{Integrating Third-Party Simulators}
-
-
 \begin{figure*}[!ht]
 \centering
 \resizebox{0.9\textwidth}{!}{%
@@ -191,6 +177,20 @@ This process is shown in Figure \ref{fig:sim_diagram}.
 \caption{Full OpenQASM-based simulation architecture}
 \label{fig:full_sim_diagram}
 \end{figure*}
+
+
+Proto-Quipper programs are simulated with a client-server architecture.
+The Proto-Quipper interpreter evaluates high-level code into low-level quantum
+instructions in the server language, called QServer, which is an assembly-like language
+similar to OpenQASM.
+The QServer instructions are then sent over a network socket,
+and each instruction is executed by the server sequentially.
+The server sends back measurement results only when it receives a dynamic lifting command.
+This process is shown in Figure \ref{fig:sim_diagram}.
+
+
+
+\section{Integrating Third-Party Simulators}
 
 
 \subsection{Available Simulators}
@@ -376,25 +376,76 @@ phi_updated = result.get_statevector()
 \label{fig:unitary_gate}
 \end{figure}
 
-Unitary gates can be applied in a similar manner to initialization.
-The current simulation state $|\psi\rangle$ is passed in using a state preparation gate,
-and unitary gates are applied to the qubits.
-The updated state $|\psi'\rangle$ is then extracted from the simulation results as a statevector,
-and stored in memory for use in future computations.
-An example of this is pictured in Figure \ref{fig:unitary_gate}.
+\begin{figure}[!ht]
+\centering
 
 
-\paragraph{Measurements}
-
-Measurements can be performed directly on the statevector without creating circuit objects.
-Both Qiskit and Cirq provide built-in functions for measurement, which take in a statevector
-and a qubit index and return the collapsed statevector and measurement result.
-Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
-qubit from the updated statevector returned from the measure function.
-This can be done by manual manipulations of the statevector using numpy.
+    \centering
+    \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
+    b, phi_updated = phi.measure([0])
+    phi.remove([0])
+    \end{lstlisting}
 
 
-\subsection{Instruction Queuing}
+    \centering
+
+    \resizebox{0.3\textwidth}{!}{%
+    \begin{circuitikz}
+    \tikzstyle{every node}=[font=\LARGE]
+    \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
+    \draw [short] (7.25,14.25) -- (7.75,14.25);
+    \draw [short] (7.25,13.5) -- (7.75,13.5);
+    \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
+    \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
+    \node [font=\Large] at (11.75,13.5) {$|\psi'\rangle$};
+    \node [font=\Large] at (11.75,14.25) {$b$};
+    \draw  (10.0,14.5) rectangle  node {\large M} (10.5,14.0);
+    \draw [short] (9,13.5) -- (11.25,13.5);
+    \draw [short] (9,14.25) -- (10.0,14.25);
+    \draw [short] (10.5,14.3) -- (11.25,14.3);
+    \draw [short] (10.5,14.2) -- (11.25,14.2);
+    \end{circuitikz}
+    }%
+
+\caption{Python-like psuedo-code for measuring a qubit. The `remove' function here is a placeholder
+for manual manipulation of the statevector using numpy.}
+
+
+
+\label{fig:measure_circ}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=0.4\textwidth]{{ ./images/qft.png }}
+\caption{Simulation time of QFT for all simulation methods}
+\label{fig:qft}
+\end{figure}
+
+
+\begin{figure*}[!ht]
+\begin{subfigure}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/qftadder.png }}
+    \caption{QFT adder}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/cuccaro.png }}
+    \caption{Cuccaro adder} 
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.32\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/gidney.png }}
+    \caption{Gidney adder} 
+\end{subfigure}
+\caption{Simulation results for binary adders}
+\label{fig:adder_results}
+\end{figure*}
+
+
 
 \begin{figure}[!ht]
 \centering
@@ -505,6 +556,25 @@ run through the simulator.}
 \label{fig:queued_circ}
 \end{figure}
 
+Unitary gates can be applied in a similar manner to initialization.
+The current simulation state $|\psi\rangle$ is passed in using a state preparation gate,
+and unitary gates are applied to the qubits.
+The updated state $|\psi'\rangle$ is then extracted from the simulation results as a statevector,
+and stored in memory for use in future computations.
+An example of this is pictured in Figure \ref{fig:unitary_gate}.
+\paragraph{Measurements}
+
+Measurements can be performed directly on the statevector without creating circuit objects.
+Both Qiskit and Cirq provide built-in functions for measurement, which take in a statevector
+and a qubit index and return the collapsed statevector and measurement result.
+Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
+qubit from the updated statevector returned from the measure function.
+This can be done by manual manipulations of the statevector using numpy.
+The generalized code for implementing measurements is given in Figure \ref{fig:measure_circ}.
+
+
+\subsection{Instruction Queuing}
+
 
 Given the fact that the server only sends back results when a read command is received, instructions need not be evaluated
 until their results are required by the client.
@@ -515,40 +585,12 @@ First, the statevector of the previous computations only has to be prepared once
 queued circuit, instead of between each instruction.
 Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
 on circuit re-writing and gate fusion \cite{elsman2025gate}.
-An example of instruction queueing is pictured in Figure \ref{fig:queued_circ}.
+An example of instruction queueing is given in Figure \ref{fig:queued_circ},
+and a comparison of code of the same circuit represented in different languages
+is given in Figure \ref{fig:code_comparison}.
 
 
 \section{Benchmark Results}
-
-\begin{figure}[!ht]
-\centering
-\includegraphics[width=0.4\textwidth]{{ ./images/qft.png }}
-\caption{Simulation time of QFT for all simulation methods}
-\label{fig:qft}
-\end{figure}
-
-
-\begin{figure*}[!ht]
-\begin{subfigure}{0.32\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{{ ./images/qftadder.png }}
-    \caption{QFT adder}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.32\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{{ ./images/cuccaro.png }}
-    \caption{Cuccaro adder} 
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.32\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{{ ./images/gidney.png }}
-    \caption{Gidney adder} 
-\end{subfigure}
-\caption{Simulation results for binary adders}
-\label{fig:adder_results}
-\end{figure*}
 
 In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
 These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
