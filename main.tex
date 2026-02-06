@@ -56,31 +56,30 @@ Engineering, University of South Carolina, Columbia, South Carolina, USA
 
 
 \begin{abstract}
-    The Proto-Quipper language allows for high-level specification
-    of quantum algorithms in a functional paradigm similar to Haskell.
+    The Proto-Quipper language allows for high-level type-safe specification
+    of quantum algorithms in a functional paradigm.
     So far, the execution of Proto-Quipper programs has been confined
-    to its own custom simulator (written in Haskell),
+    to its own custom simulator written in Haskell,
     with no ability to run on third-party simulators or real quantum hardware.
-    The main obstacle preventing this is Proto-Quipper's support for
-    `dynamic lifting,' where measurement results are fed back into the
+    This is due to third-party simulators
+    lack native support of \textit{dynamic lifting}. Dynamic lifting is a feature in Quipper
+    and Proto-Quipper where measurement results can be fed back into the
     circuit generation environment in real time to generate the next
-    portion of the circuit (this is also known as `dynamic circuits').
-    In this work, we extend the existing Proto-Quipper architecture with a new
-    Python-based simulator which integrates the third-party libraries 
-    Cirq (Google) and Qiskit (IBM), both of which have state-of-the-art 
-    quantum simulators.
-    Although these simulators have limited built-in support for dynamic circuits,
+    portion of the circuit. This is also known as \textit{dynamic circuits} in
+    Qiskit.
+
+    In this paper, we extend the existing Proto-Quipper simulation architecture with
+    state-of-the-art quantum simulators from Cirq and Qiskit.  
+    Although these simulators have limited support for dynamic circuits,
     we are able to execute much more complicated programs by only slightly extending
     the simulators capabilities.
-    We also build several programs which convert Proto-Quipper programs to
-    OpenQASM, both for the purpose of generating static circuits which
-    can be executed on existing quantum processors, and as an intermediate
-    representation for real-time simulation.
-    Finally, we optimize our simulator using instruction queuing and
-    benchmark our results against the existing Haskell-based
-    simulator.
-    We find that our simulator significantly outperforms
-    the original Haskell one on a variety of tasks.
+    We also build an OpenQasm converter for Proto-Quipper circuits,
+    which enable the circuits to be ran on existing quantum processors
+    and simulators.
+    Finally, we optimize our simulators using instruction queuing and
+    show they significantly outperform
+    the existing custom simulator on our benchmarks.
+    
 \end{abstract}
 
 
@@ -706,3 +705,8 @@ Future work could also include compiling Proto-Quipper programs directly to a lo
 \bibliography{refs.bib}
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
