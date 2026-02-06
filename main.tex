@@ -56,17 +56,32 @@ Engineering, University of South Carolina, Columbia, South Carolina, USA
 
 
 \begin{abstract}
+    % -- good so far --
     The Proto-Quipper language allows for high-level specification
     of quantum algorithms in a functional paradigm similar to Haskell.
     So far, the execution of Proto-Quipper programs has been confined
     to its own custom simulator (written in Haskell),
-    with no ability to run on third-party
-    simulators or real quantum hardware.
-    This paper discusses efforts to integrate third-party locally-run
-    simulators such as those developed by Google (Cirq) and IBM (Qiskit),
-    as well as possible future efforts to enable execution of
-    Proto-Quipper programs on cloud simulators and even 
-    real quantum processing units (QPUs).
+    with no ability to run on third-party simulators or real quantum hardware.
+    % -----------------
+    In this work, we extend the existing Proto-Quipper architecture with a new
+    Python-based simulator which integrates the third-party libraries 
+    Cirq (Google) and Qiskit (IBM), both of which have state-of-the-art 
+    quantum simulators.
+    We also build several programs which convert Proto-Quipper programs to
+    OpenQASM, both for the purpose of generating static circuits which
+    can be executed on existing QPUs, and as an intermediate representation
+    for real-time simulation.
+    Finally, we optimize our simulator using instruction queuing and
+    benchmark our results against the existing Haskell-based
+    simulator.
+    We find that our simulator significantly outperforms
+    the original one on a variety of tasks.
+
+%    This paper discusses efforts to integrate third-party locally-run
+%    simulators such as those developed by Google (Cirq) and IBM (Qiskit),
+%    as well as possible future efforts to enable execution of
+%    Proto-Quipper programs on cloud simulators and even 
+%    real quantum processing units (QPUs).
 \end{abstract}
 
 
@@ -175,10 +190,16 @@ This process is shown in Figure \ref{fig:sim_diagram}.
 \subsection{Contributions}
 
 \begin{enumerate}
+    % Remove this first one
 	\item Describe the difficulties of integrating high-level quantum programming languages
 		with quantum simulators and quantum hardware
+
+    % Talk about OpenQASM conversion written in Haskell
+
+    % Extend existing architecture, mention Python
 	\item Develop a simulation architecture for real-time simulation of Proto-Quipper programs
 		with third-party simulators from Cirq and Qiskit through conversion to OpenQASM
+
 	\item Implement optimization of simulations through instruction queuing and benchmark the
 		performance improvement
 
