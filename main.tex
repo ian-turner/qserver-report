@@ -117,18 +117,18 @@ or discarding a qubit without measuring it.
 
 \begin{figure*}[!ht]
 \centering
-\resizebox{0.9\textwidth}{!}{%
+\resizebox{\textwidth}{!}{%
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\LARGE]
-\draw [ rounded corners = 4.8, align=left] (6.25,15) rectangle  node {Proto-Quipper \\ Interpreter} (10.25,10.25);
+\draw [ rounded corners = 4.8, align=left] (6.25,15) rectangle  node[align=center] {Proto-Quipper \\ Interpreter} (10.25,10.25);
 \draw [ rounded corners = 4.8] (16.25,15) rectangle  node {\LARGE Server} (20.25,10.25);
 \draw [->, >=Stealth] (16.25,11.5) -- (10.25,11.5);
 \node [font=\LARGE] at (13.25,15) {Commands};
 \node [font=\LARGE] at (13.25,12) {Dynamic Lifting};
-\draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal Quantum State} (20,10.5);
+\draw [ rounded corners = 4.8] (16.5,11.5) rectangle  node {\normalsize Internal State} (20,10.5);
 
 
-\draw [ rounded corners = 4.8] (1,13.25) rectangle  node {\small Proto-Quipper source code} (5,12);
+\draw [ rounded corners = 4.8] (1,13.25) rectangle  node {\normalsize Source code} (5,12);
 \draw [->, >=Stealth] (5,12.75) -- (6.25,12.75);
 \draw [ rounded corners = 4.8] (21.25,14) rectangle  node {\large OpenQASM} (24.25,12.75);
 \draw [->, >=Stealth] (20.25,13.5) -- (21.25,13.5);
@@ -139,7 +139,7 @@ or discarding a qubit without measuring it.
 \draw [ rounded corners = 4.8] (11.5,14.5) rectangle  node {\large QServer language} (15,13.25);
 \draw [->, >=Stealth] (10.25,14) -- (11.5,14);
 \draw [->, >=Stealth] (15,14) -- (16.25,14);
-\draw [ rounded corners = 4.8] (21.25,12.25) rectangle  node {\large State, bit results} (24.25,11);
+\draw [ rounded corners = 4.8] (21.25,12.25) rectangle  node {\large State, results} (24.25,11);
 \draw [->, >=Stealth] (21.25,11.75) -- (20.25,11.75);
 \draw [->, >=Stealth] (25.75,13.25) -- (24.25,11.75);
 \draw [->, >=Stealth] (25.75,11.5) -- (24.25,11.5);
@@ -275,23 +275,28 @@ send the measurement result back to the client, and wait for further instruction
 
 \begin{figure*}[!ht]
 	\centering
-	\begin{subfigure}{0.4\textwidth}
+	\begin{subfigure}{0.48\textwidth}
 		\centering
 \begin{lstlisting}[language=Haskell,basicstyle=\small\ttfamily]
-bell00 : !(Unit -> Qubit * Qubit)
-bell00 x = let a = H (Init0 ())
-	       b = Init0 ()
-	       (b, a) = CNot b a
-	   in (a, b)
+bell00 : !(Unit ->
+  Qubit * Qubit)
+bell00 x =
+  let
+    a = H (Init0 ())
+	b = Init0 ()
+	(b, a) = CNot b a
+  in (a, b)
 
 main : Bool * Bool
-main = let (a, b) = bell00 ()
-       in (dynlift (Meas a),
-           dynlift (Meas b))
+main =
+  let
+    (a, b) = bell00 ()
+  in (dynlift (Meas a),
+    dynlift (Meas b))
 \end{lstlisting}
 		\caption{Proto-Quipper code}
 	\end{subfigure}
-	\begin{subfigure}{0.18\textwidth}
+	\begin{subfigure}{0.48\textwidth}
 		\centering
 \begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
 Q 0
@@ -305,7 +310,7 @@ R 1
 \end{lstlisting}
 		\caption{QServer code}
 	\end{subfigure}
-	\begin{subfigure}{0.24\textwidth}
+	\begin{subfigure}{0.5\textwidth}
 		\centering
 		\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
 qubit[2] qs;
