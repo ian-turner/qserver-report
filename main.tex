@@ -1,26 +1,6 @@
-\documentclass[letterpaper]{article}
-% DO NOT CHANGE THIS
-\usepackage[]{aaai25} % DO NOT CHANGE THIS
-\usepackage{times} % DO NOT CHANGE THIS
-\usepackage{helvet} % DO NOT CHANGE THIS
-\usepackage{courier} % DO NOT CHANGE THIS
-\usepackage[hyphens]{url} % DO NOT CHANGE THIS
-\usepackage{graphicx} % DO NOT CHANGE THIS
-\urlstyle{rm} % DO NOT CHANGE THIS
-\def\UrlFont{\rm} % DO NOT CHANGE THIS
-\usepackage{graphicx} % DO NOT CHANGE THIS
-\usepackage{natbib} % DO NOT CHANGE THIS
-\usepackage{caption} % DO NOT CHANGE THIS
-\frenchspacing % DO NOT CHANGE THIS
-\setlength{\pdfpagewidth}{8.5in} % DO NOT CHANGE THISvb
-\setlength{\pdfpageheight}{11in} % DO NOT CHANGE THIS
-%
-% Keep the \pdfinfo as shown here. There’s no need
-% for you to add the /Title and /Author tags.
-\pdfinfo{
-/TemplateVersion (2025.1)
-}
-
+\documentclass[runningheads]{llncs}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
 
 
 \usepackage{amsmath,amsfonts,amssymb}
@@ -33,20 +13,15 @@
 \usepackage{listings}
 \usepackage{hyperref}
 
+%% Command for ket vector formatting
 \newcommand{\ket}[1]{|#1 \rangle}
+
 %% Section numbering
 \setcounter{secnumdepth}{2}
 
 
 \title{Efficient Simulation of Proto-Quipper Programs}
-
-\author{Ian Turner\textsuperscript{\rm 1}
-}
-\affiliations{
-
-\textsuperscript{\rm 1}Department of Computer Science and
-Engineering, University of South Carolina, Columbia, South Carolina, USA
-}
+\author{Ian Turner}
 
 
 \begin{document}
@@ -492,26 +467,8 @@ for manual manipulation of the statevector using numpy.}
     result = sim.run(qc).result()
     phi = result.get_statevector()
 
-    # Inst 4: S gate on qubit 3
-    qc = QuantumCircuit(4)
-    qc.initialize(phi, [0, 1, 2, 3])
-    qc.s(3)
-    result = sim.run(qc).result()
-    phi = result.get_statevector()
-
-    # Inst 5: CNOT gate on qubits 2,0
-    qc = QuantumCircuit(4)
-    qc.initialize(phi, [0, 1, 2, 3])
-    qc.cx(2, 0)
-    result = sim.run(qc).result()
-    phi = result.get_statevector()
-
-    # Inst 6: CNOT gate on qubits 1,3
-    qc = QuantumCircuit(4)
-    qc.initialize(phi, [0, 1, 2, 3])
-    qc.cx(2, 0)
-    result = sim.run(qc).result()
-    phi = result.get_statevector()
+    # Insts 4-6: gate instructions
+    # ...
     \end{lstlisting}
 
 
@@ -702,11 +659,8 @@ which can scale simulations to several hundred qubits by exploiting approximatio
 Future work could also include compiling Proto-Quipper programs directly to a low-level intermediate format.
 
 
-\bibliography{refs.bib}
+\bibliographystyle{splncs04}
+\bibliography{refs}
+
 
 \end{document}
-
-%%% Local Variables:
-%%% mode: latex
-%%% TeX-master: t
-%%% End:
