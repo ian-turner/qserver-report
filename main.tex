@@ -415,7 +415,7 @@ for manual manipulation of the statevector using numpy.}
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{{ ./images/qft.png }}
+\includegraphics[width=0.8\textwidth]{{ ./images/qft.png }}
 \caption{Simulation time of QFT for all simulation methods}
 \label{fig:qft}
 \end{figure}
@@ -447,8 +447,9 @@ for manual manipulation of the statevector using numpy.}
 
 \begin{figure*}
     \centering
-    \includegraphics[width=\linewidth]{{ ./images/v3.png }}
+    \includegraphics[width=0.8\linewidth]{{ ./images/v3.png }}
     \caption{V3 circuit} 
+    \label{fig:v3_bench}
 \end{figure*}
 
 
@@ -456,55 +457,50 @@ for manual manipulation of the statevector using numpy.}
 \centering
 
 
-\begin{subfigure}{0.48\textwidth}
+\begin{subfigure}{0.4\textwidth}
     \centering
     \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-    # Inst 1: initialize qubit
-    qc = QuantumCircuit(3)
-    qc.initialize(phi, [1, 2])
-    result = sim.run(qc).result()
-    phi = result.get_statevector()
+# Inst 1: initialize qubit
+qc = QuantumCircuit(3)
+qc.initialize(phi, [1, 2])
+result = sim.run(qc).result()
+phi = result.get_statevector()
 
-    # Inst 2: initialize qubit
-    qc = QuantumCircuit(4)
-    qc.initialize(phi, [1, 2, 3])
-    result = sim.run(qc).result()
-    phi = result.get_statevector()
+# Inst 2: initialize qubit
+qc = QuantumCircuit(4)
+qc.initialize(phi, [1, 2, 3])
+result = sim.run(qc).result()
+phi = result.get_statevector()
 
-    # Inst 3: H gate on qubit 2
-    qc = QuantumCircuit(4)
-    qc.initialize(phi, [0, 1, 2, 3])
-    qc.h(2)
-    result = sim.run(qc).result()
-    phi = result.get_statevector()
+# Inst 3: H gate on qubit 2
+qc = QuantumCircuit(4)
+qc.initialize(phi, [0, 1, 2, 3])
+qc.h(2)
+result = sim.run(qc).result()
+phi = result.get_statevector()
 
-    # Insts 4-6: gate instructions
-    # ...
+# Insts 4-6: gate instructions
+# ...
     \end{lstlisting}
-
-
 
 \caption{Unqueued execution of circuit in Qiskit.
 Here each instruction requires a new circuit to be created and
 run through the simulator.}
 \end{subfigure}
 
-
-\begin{subfigure}{0.48\textwidth}
+\begin{subfigure}{0.4\textwidth}
     \centering
     \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-    # Run all instructions at once
-    qc = QuantumCircuit(4)
-    qc.initialize(phi, [2, 3])
-    qc.h(2)
-    qc.s(3)
-    qc.cx(2, 1)
-    qc.cx(1, 3)
-    result = sim.run(qc).result()
-    phi_updated = result.get_statevector()
+# Run all instructions
+qc = QuantumCircuit(4)
+qc.initialize(phi, [2, 3])
+qc.h(2)
+qc.s(3)
+qc.cx(2, 1)
+qc.cx(1, 3)
+res = sim.run(qc).result()
+phi_n = res.get_statevector()
     \end{lstlisting}
-
-
 
     \resizebox{0.8\textwidth}{!}{%
     \begin{circuitikz}
@@ -596,6 +592,7 @@ to a low-level virtual machine language, and then that language is executed on t
 
 In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
 These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
+multi-qubit teleportation, an example of a circuit using `repeat-until-success' gates,
 and the MaxCut QAOA algorithm \cite{farhi2014quantum}.
 We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
 We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
@@ -629,7 +626,7 @@ of superposition and entanglement, so in practice this limitation is largely irr
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{{ ./images/maxcut.png }}
+\includegraphics[width=0.8\textwidth]{{ ./images/maxcut.png }}
 \caption{MaxCut QAOA}
 \label{fig:maxcut}
 \end{figure}
@@ -637,9 +634,9 @@ of superposition and entanglement, so in practice this limitation is largely irr
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{{ ./images/tele.png }}
+\includegraphics[width=0.8\textwidth]{{ ./images/tele.png }}
 \caption{$n$-Qubit teleportation}
-\label{fig:maxcut}
+\label{fig:tele}
 \end{figure}
 
 
@@ -653,6 +650,28 @@ Because of this, it has been the subject of much study and development, which re
 The results in Figure \ref{fig:maxcut} show that the Cirq and Qiskit simulators dramatically outperform the Haskell
 simulator on this task.
 This is not surprising, since the maxcut circuit creates states with high levels of superposition and entanglement.
+
+
+\paragraph{Multi-Qubit Teleportation}
+
+
+\paragraph{Repeat-Until Success}
+
+`Repeat-until-success' (RUS) circuits are non-deterministic decompositions of unitary gates \cite{paetznick2013repeat}.
+These circuits prepare a set of ancilla qubits in some initial state, then perform a unitary
+operation involving both the ancillas and target qubits.
+Then, the ancillas are measured for some terminal condition, e.g. `all ancillas are 0'.
+If the terminal condition is reached, the operation has been performed.
+Otherwise, the operation has failed, meaning the identity has been performed, and the entire
+circuit is repeated until the terminal condition is reached.
+These circuits provide an excellent benchmark for simulating dynamic lifting,
+since they contain many non-trivial mid-circuit measurements.
+We choose the `V3' gate from the original RUS paper,
+and construct an arbitrary circuit structure involving the preparation of all qubits
+in the $\ket{+}$ state, $n$ V3 gates on the $n$ qubits,
+followed by a layer of $n-1$ CNOT gates, where the control of the $i$-th gate
+is on qubit $i$, and the target is on qubit $i+1$.
+The results for this benchmark are presented in figure \ref{fig:v3_bench}.
 
 
 \section{Related work}
@@ -675,7 +694,7 @@ This approach extends the number of qubits able to be simulated compared to the 
 but has some downsides when compared to the original simulator, and is still significantly limited by memory constraints.
 Future work could include integrating more advanced simulators such as tensor network simulators,
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
-Future work could also include compiling Proto-Quipper programs directly to a low-level intermediate format.
+Future work could also include compiling Proto-Quipper source code directly to a low-level intermediate format.
 
 
 \bibliographystyle{splncs04}
