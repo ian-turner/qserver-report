@@ -94,7 +94,7 @@ or discarding a qubit without measuring it.
 
 \subsection{Simulating Proto-Quipper Programs}
 
-\begin{figure}[!ht]
+\begin{figure}
 \centering
 \resizebox{0.4\textwidth}{!}{%
 \begin{circuitikz}
@@ -114,7 +114,7 @@ or discarding a qubit without measuring it.
 \end{figure}
 
 
-\begin{figure*}[!ht]
+\begin{figure*}
 \centering
 \resizebox{\textwidth}{!}{%
 \begin{circuitikz}
@@ -228,7 +228,7 @@ A diagram of the full OpenQASM simulation architecture is pictured in Figure \re
 
 \subsection{Simulation with Qiskit}
 
-\begin{figure}[!ht]
+\begin{figure}
 \centering
 
 \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
@@ -272,7 +272,7 @@ When the server receives a read instruction, it must pause simulation and hold t
 send the measurement result back to the client, and wait for further instructions to continue the simulation.
 
 
-\begin{figure*}[!ht]
+\begin{figure*}
 	\centering
 	\begin{subfigure}{0.48\textwidth}
 		\centering
@@ -336,7 +336,7 @@ to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\ra
 
 \paragraph{Unitary Gates}
 
-\begin{figure}[!ht]
+\begin{figure}
 \centering
 
 
@@ -374,7 +374,7 @@ phi_updated = result.get_statevector()
 \label{fig:unitary_gate}
 \end{figure}
 
-\begin{figure}[!ht]
+\begin{figure}
 \centering
 
 
@@ -413,28 +413,29 @@ for manual manipulation of the statevector using numpy.}
 \label{fig:measure_circ}
 \end{figure}
 
-\begin{figure}[!ht]
+\begin{figure}
 \centering
-\includegraphics[width=0.4\textwidth]{{ ./images/qft.png }}
+\includegraphics[width=\textwidth]{{ ./images/qft.png }}
 \caption{Simulation time of QFT for all simulation methods}
 \label{fig:qft}
 \end{figure}
 
 
-\begin{figure*}[!ht]
-\begin{subfigure}{0.32\textwidth}
+\begin{figure*}
+\centering
+\begin{subfigure}{0.48\textwidth}
     \centering
     \includegraphics[width=\linewidth]{{ ./images/qftadder.png }}
     \caption{QFT adder}
 \end{subfigure}
 \hfill
-\begin{subfigure}{0.32\textwidth}
+\begin{subfigure}{0.48\textwidth}
     \centering
     \includegraphics[width=\linewidth]{{ ./images/cuccaro.png }}
     \caption{Cuccaro adder} 
 \end{subfigure}
 \hfill
-\begin{subfigure}{0.32\textwidth}
+\begin{subfigure}{0.48\textwidth}
     \centering
     \includegraphics[width=\linewidth]{{ ./images/gidney.png }}
     \caption{Gidney adder} 
@@ -444,8 +445,14 @@ for manual manipulation of the statevector using numpy.}
 \end{figure*}
 
 
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{{ ./images/v3.png }}
+    \caption{V3 circuit} 
+\end{figure*}
 
-\begin{figure}[!ht]
+
+\begin{figure}
 \centering
 
 
@@ -620,10 +627,18 @@ Of course, useful quantum algorithms will inevitably contain many non-classical 
 of superposition and entanglement, so in practice this limitation is largely irrelevant.
 
 
-\begin{figure}[!ht]
+\begin{figure}
 \centering
-\includegraphics[width=0.4\textwidth]{{ ./images/maxcut.png }}
+\includegraphics[width=\textwidth]{{ ./images/maxcut.png }}
 \caption{MaxCut QAOA}
+\label{fig:maxcut}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{{ ./images/tele.png }}
+\caption{$n$-Qubit teleportation}
 \label{fig:maxcut}
 \end{figure}
 
