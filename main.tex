@@ -103,7 +103,7 @@ by converting them to OpenQASM piece-by-piece on the fly.
 
 \begin{figure}
 \centering
-\resizebox{0.4\textwidth}{!}{%
+\resizebox{0.5\textwidth}{!}{%
 \begin{circuitikz}
 \tikzstyle{every node}=[font=\LARGE]
 \draw [ rounded corners = 4.8] (6.25,15) rectangle  node {\LARGE Client} (10.25,10.25);
@@ -143,17 +143,26 @@ enough for us to implement servers that are based on other third-party quantum s
 as long as these servers implement the QServer language.  
 
 \subsection{Contributions}
-In this paper, we develop a simulation architecture for real-time simulation of
-Proto-Quipper programs with third-party simulators from Cirq and Qiskit through conversion to OpenQASM. Implement optimization of simulations through instruction queuing and benchmark the
-		performance improvement
-Code available at: \href{https://github.com/ian-turner/pyqserver}
-{https://github.com/ian-turner/pyqserver}
+In this paper, we extend the existing Proto-Quipper simulation architecture with
+state-of-the-art quantum simulators from Cirq and Qiskit (Section \ref{sec:integration}).  
+Although these simulators do not directly support dynamic lifting,
+we are able to slightly extend
+the simulators' capabilities to enable running Proto-Quipper
+programs that use dynamic lifting.
+We also build an OpenQasm converter for Proto-Quipper circuits,
+which enable the circuits to be ran on existing quantum processors
+and simulators (Section \ref{sec:openqasm}).
+Finally, we optimize our simulator using instruction queuing and
+show they significantly outperform
+the existing custom simulator on our benchmarks (Section \ref{sec:benchmarks}).
+Our work is available at: \href{https://github.com/ian-turner/pyqserver}
+{https://github.com/ian-turner/pyqserver}.
 
 
 
 
 \section{Integrating Third-Party Simulators}
-
+\label{sec:integration}
 
 \subsection{Available Simulators}
 
