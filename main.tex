@@ -37,12 +37,12 @@
     So far, the execution of Proto-Quipper programs has been confined
     to its own custom simulator written in Haskell,
     with no ability to run on third-party simulators or real quantum hardware.
-    This is due to third-party simulators
+    This is because the available third-party simulators
     lack native support of \textit{dynamic lifting}. Dynamic lifting is a feature in Quipper
     and Proto-Quipper where measurement results can be fed back into the
     circuit generation environment in real time to generate the next
-    portion of the circuit. This is also known as \textit{dynamic circuits} in
-    Qiskit.
+    portion of the circuit. This is similar to \textit{dynamic circuits} in
+    Qiskit and other languages.
 
     In this paper, we extend the existing Proto-Quipper simulation architecture with
     state-of-the-art quantum simulators from Cirq and Qiskit.  
@@ -52,7 +52,7 @@
     We also build an OpenQasm converter for Proto-Quipper circuits,
     which enable the circuits to be ran on existing quantum processors
     and simulators.
-    Finally, we optimize our simulators using instruction queuing and
+    Finally, we optimize our simulator using instruction queuing and
     show they significantly outperform
     the existing custom simulator on our benchmarks.
     
@@ -81,7 +81,8 @@ In particular, we build a converter from Proto-Quipper circuits to OpenQASM,
 and an interpreter that can run Proto-Quipper programs that use dynamic lifting
 by converting them to OpenQASM piece-by-piece on the fly.
 
-Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper \cite{}.
+Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper
+\cite{fu2023proto,fu2024proto}.
 Proto-Quipper contains two runtimes; circuit generation and circuit execution.
 Variables whose values are determined during circuit generation time are called \textit{parameters}, while variables
 that are determined during circuit execution time are called \textit{states}.
@@ -664,7 +665,7 @@ It allows the transportation of qubit information from one physical qubit to ano
 Teleportation has many practical uses, including quantum cryptography \cite{pirandola2015advances}, for example.
 In this paper, we use \textit{multi-qubit} teleportation, which simply repeats teleportation $n$ times across $n$ qubits,
 in order to show the scaling differences between simulators as the number of qubits increases.
-The results are presented in figure \ref{fig:tele}.
+The results are presented in Figure \ref{fig:tele}.
 
 
 \paragraph{Repeat-Until Success}
@@ -683,7 +684,7 @@ and construct an arbitrary circuit structure involving the preparation of all qu
 in the $\ket{+}$ state, $n$ V3 gates on the $n$ qubits,
 followed by a layer of $n-1$ CNOT gates, where the control of the $i$-th gate
 is on qubit $i$, and the target is on qubit $i+1$.
-The results for this benchmark are presented in figure \ref{fig:v3_bench}.
+The results for this benchmark are presented in Figure \ref{fig:v3_bench}.
 
 
 \section{Related work}
@@ -697,6 +698,19 @@ a low-level quantum-classical hybrid specification based on LLVM.
 Silq, another high-level language, runs on its own custom simulator,
 and cannot be run on third-party simulators or any real quantum hardware.
 
+While Cirq and Qiskit do allow creation and simulation of dynamic circuits, their capabilities are somewhat limited.
+Both allow for `classically-controlled' gates, where measurement outcomes determine whether a specific gate
+is applied or not.
+Both also support `while' loops, where a section of the circuit is run until a specific boolean
+outcome is achieved, e.g. $x \wedge y$ or $x \oplus y$, where $x$ and $y$ are measurement outcomes.
+However, neither support dynamic qubit allocation and addressing, meaning all qubits must be initialized
+at the start of the circuit, and the target qubits of a gate must be known at circuit generation time.
+They also do not allow the seamless interleaving of circuit generation and execution, since circuits are generated
+as Python objects, then handed off to the simulator, and a new circuit cannot be generated until the entire
+simulation of the first circuit is finished.
+This is contrast to Proto-Quipper, where a programmer can run a circuit simply by evaluating its expression,
+and let the interpreter determine how best to simulate it, as well as influence the generation of a circuit during simulation time.
+
 
 \section{Conclusion and Future Work}
 
@@ -704,7 +718,7 @@ This work presents an approach for simulating a high-level quantum programming l
 quantum simulators.
 This approach extends the number of qubits able to be simulated compared to the existing Proto-Quipper simulator,
 but has some downsides when compared to the original simulator, and is still significantly limited by memory constraints.
-Future work could include integrating more advanced simulators such as tensor network simulators,
+Future work could include integrating more advanced simulators such as tensor network simulators \cite{berezutskii2025tensor},
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
 Future work could also include compiling Proto-Quipper source code directly to a low-level intermediate format.
 
