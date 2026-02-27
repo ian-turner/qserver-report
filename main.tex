@@ -70,10 +70,26 @@ For even higher-level languages, such as Silq \cite{bichsel2020silq}, Q\# \cite{
 and Proto-Quipper \cite{fu2023proto}, they provide advance features such as automatic uncomputation, type checking, dynamic
 lifting and type-safe circuit reversing and control.
 
-While the capability of dynamic lifting allows programmers to create much more complex circuits than
-would be feasible to directly implement in Cirq or Qiskit, it greatly increases the
+Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper
+\cite{fu2023proto,fu2024proto}.
+Proto-Quipper contains two runtimes: circuit generation time and circuit execution time.
+Variables whose values are determined during circuit generation time are called \textit{parameters}, while variables
+that are determined during circuit execution time are called \textit{states}.
+\textit{Dynamic lifting} allows for state variables to be `lifted' to parameters variables.
+The circuit measurement results from the circuit execution runtime can be used 
+in the circuit
+generation time to inform the generation of the next circuit.
+Thus dynamic lifting allows the two runtimes to be interleaved seamlessly.
+
+While dynamic lifting enable programmers to create much more complex circuits than
+would be feasible to directly implement in Cirq or Qiskit, it is an expensive operation, as it
+requires control to pass from circuit execution time back to circuit generation time. This requires
+the real-time quantum computer to put all of its active qubits into long-term storage while spending
+an indeterminate amount of time awaiting further instructions from the classical computer in
+charge of circuit generation \cite{fu2023proto}.
+Moreover, dynamic lifting increases the
 complexity of the simulation of such programs, since static circuit objects cannot be created,
-and communication between the simulator and language interpreter is needed during simulation time.
+and communication between the simulator and language interpreter is needed during the simulation.
 So far, no work has attempted to allow direct simulation of dynamic lifting in Quipper or Proto-Quipper on third-party simulators.
 In this work, we enable Proto-Quipper programs to
 be run on state-of-the-art quantum simulators.
@@ -81,21 +97,6 @@ In particular, we build a converter from Proto-Quipper circuits to OpenQASM,
 and an interpreter that can run Proto-Quipper programs that use dynamic lifting
 by converting them to OpenQASM piece-by-piece on the fly.
 
-Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper
-\cite{fu2023proto,fu2024proto}.
-Proto-Quipper contains two runtimes; circuit generation and circuit execution.
-Variables whose values are determined during circuit generation time are called \textit{parameters}, while variables
-that are determined during circuit execution time are called \textit{states}.
-Dynamic lifting allows for state variables to be `lifted' to parameters variables.
-This can be used to lift circuit measurement results from the circuit execution runtime back into the circuit
-generation runtime in order to modify the generation of the next circuit.
-This allows for quantum and classical instructions to be interleaved seamlessly.
-Proto-Quipper also enforces static typing, which checks
-if a circuit generating program is well-typed, ensuring the generated quantum circuit is well-formed.
-The types \textbf{Qubit} and \textbf{Bit} are considered \textit{linear resources}, meaning they cannot be duplicated
-or discarded.
-This prevents runtime/logical errors that can occur in low-level languages such as attempting to duplicate a qubit
-or discarding a qubit without measuring it.
 
 
 \subsection{Simulating Proto-Quipper Programs}
@@ -120,6 +121,63 @@ or discarding a qubit without measuring it.
 \end{figure}
 
 
+
+
+Proto-Quipper programs are simulated with a client-server architecture as illustrated
+in Figure \ref{fig:sim_diagram}.
+The client is the Proto-Quipper interpreter, and the server is
+a simulator. 
+The client evaluates Proto-Quipper programs, produces a sequence of low-level quantum
+instructions for the server. This low-level assembly-like language for the server is called QServer in Proto-Quipper-Dyn's implementation \cite{fu2023proto}. The QServer
+language is very similar to OpenQasm 2 \cite{cross2017}, the main difference is that QServer
+includes a read command
+that reads the results of the measurements.
+The QServer instructions can be sent to the server over a network socket,
+and each instruction is executed by the server sequentially.
+The server performs the read command and sends back measurement results when it receives a dynamic lifting command from the client.
+
+So far Proto-Quipper only comes with its own custom simulator written in Haskell, and
+currently there is no mechanism available to run Proto-Quipper programs on
+the state-of-the art simulators, especially the ones with dynamic lifting. As it turns out, the client-server architecture is flexible
+enough for us to implement servers that are based on other third-party quantum simulators,
+as long as these servers implement the QServer language.  
+
+\subsection{Contributions}
+In this paper, we develop a simulation architecture for real-time simulation of
+Proto-Quipper programs with third-party simulators from Cirq and Qiskit through conversion to OpenQASM. Implement optimization of simulations through instruction queuing and benchmark the
+		performance improvement
+Code available at: \href{https://github.com/ian-turner/pyqserver}
+{https://github.com/ian-turner/pyqserver}
+
+
+
+
+\section{Integrating Third-Party Simulators}
+
+
+\subsection{Available Simulators}
+
+Dozens of state-of-the-art quantum computing simulation programs exist currently \cite{jamadagni2024benchmarking}.
+They employ a variety of different simulation methods, including statevector simulation, tensor networks,
+decision trees, etc.
+For this project, we chose to work with statevector simulators, which model quantum computation using matrix-vector
+multiplication.
+We integrated the simulation capabilities of the Python-based quantum computing libraries Cirq and Qiskit, given that
+they are the most commonly used and extensively developed libraries for quantum computing,
+and both have multiple state-of-the-art simulation methods.
+
+In Qiskit and Cirq, the programs that
+generate quantum circuits are usually structured
+by the following: they start with an array of qubits and bits
+all initialized to the $\ket{0}$ state, then we apply a series of in-place operations on those qubits and bits, and then (usually)
+measuring the entire qubit array at the end and returning the final qubit and bit states.
+The operations applied can be either unitary quantum gates or measurement gates.
+There is some support for higher-level programming constructs such as `if' and `while' statements,
+where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits} in Qiskit. 
+But these features are still experimental and are quite limited, so we do not use them in this project.
+
+
+\subsection{Integration with Proto-Quipper}
 \begin{figure*}
 \centering
 \resizebox{\textwidth}{!}{%
@@ -154,67 +212,6 @@ or discarding a qubit without measuring it.
 \caption{Full OpenQASM-based simulation architecture}
 \label{fig:full_sim_diagram}
 \end{figure*}
-
-
-Proto-Quipper programs are simulated with a client-server architecture.
-The Proto-Quipper interpreter evaluates high-level code into low-level quantum
-instructions in the server language, called QServer, which is an assembly-like language
-similar to OpenQASM.
-The QServer instructions are then sent over a network socket,
-and each instruction is executed by the server sequentially.
-The server sends back measurement results only when it receives a dynamic lifting command.
-This process is shown in Figure \ref{fig:sim_diagram}.
-
-\subsection{Contributions}
-
-\begin{enumerate}
-    % Remove this first one
-	\item Describe the difficulties of integrating high-level quantum programming languages
-		with quantum simulators and quantum hardware
-
-    % Talk about OpenQASM conversion written in Haskell
-
-    % Extend existing architecture, mention Python
-	\item Develop a simulation architecture for real-time simulation of Proto-Quipper programs
-		with third-party simulators from Cirq and Qiskit through conversion to OpenQASM
-
-	\item Implement optimization of simulations through instruction queuing and benchmark the
-		performance improvement
-
-\end{enumerate}
-
-Code available at: \href{https://github.com/ian-turner/pyqserver}
-{https://github.com/ian-turner/pyqserver}
-
-
-
-
-\section{Integrating Third-Party Simulators}
-
-
-\subsection{Available Simulators}
-
-Dozens of state-of-the-art quantum computing simulation programs exist currently \cite{jamadagni2024benchmarking}.
-They employ a variety of different simulation methods, including statevector simulation, tensor networks,
-decision trees, etc.
-For this project, we chose to work with statevector simulators, which model quantum computation using matrix-vector
-multiplication.
-We integrated the simulation capabilities of the Python-based quantum computing libraries Cirq and Qiskit, given that
-they are the most commonly used and extensively developed libraries for quantum computing,
-and both have multiple state-of-the-art simulation methods.
-
-In Qiskit and Cirq, the programs that
-generate quantum circuits are usually structured
-by the following: they start with an array of qubits and bits
-all initialized to the $\ket{0}$ state, then we apply a series of in-place operations on those qubits and bits, and then (usually)
-measuring the entire qubit array at the end and returning the final qubit and bit states.
-The operations applied can be either unitary quantum gates or measurement gates.
-There is some support for higher-level programming constructs such as `if' and `while' statements,
-where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits} in Qiskit. 
-But these features are still experimental and are quite limited, so we do not use them in this project.
-
-
-\subsection{Integration with Proto-Quipper}
 
 The main challenges of integrating Cirq and Qiskit into the Proto-Quipper simulation infrastructure are
 (1) Cirq and Qiskit do not allow dynamic qubit allocation; meaning ancilla qubits must be allocated during circuit generation,
