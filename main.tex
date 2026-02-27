@@ -22,7 +22,7 @@
 
 \title{Efficient Simulation of Proto-Quipper Programs}
 \author{Ian Turner, Peng Fu}
-\institute{Department of Computer Science and Computer Engineering, University of South Carolina, Columbia, South Carolina, USA}
+\institute{Department of Computer Science and Engineering, University of South Carolina, Columbia, South Carolina, USA}
 
 
 \begin{document}
@@ -41,14 +41,14 @@
     lack native support of \textit{dynamic lifting}. Dynamic lifting is a feature in Quipper
     and Proto-Quipper where measurement results can be fed back into the
     circuit generation environment in real time to generate the next
-    portion of the circuit. This is similar to \textit{dynamic circuits} in
-    Qiskit and other languages.
+    portion of the circuit.
 
     In this paper, we extend the existing Proto-Quipper simulation architecture with
     state-of-the-art quantum simulators from Cirq and Qiskit.  
-    Although these simulators have limited support for dynamic circuits,
-    we are able to execute much more complicated programs by only slightly extending
-    the simulators capabilities.
+    Although these simulators do not directly support dynamic lifting,
+    we are able to slightly extend
+    the simulators' capabilities to enable running Proto-Quipper
+    programs that use dynamic lifting.
     We also build an OpenQasm converter for Proto-Quipper circuits,
     which enable the circuits to be ran on existing quantum processors
     and simulators.
@@ -728,3 +728,8 @@ Future work could also include compiling Proto-Quipper source code directly to a
 
 
 \end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% End:
