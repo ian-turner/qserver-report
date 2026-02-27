@@ -654,6 +654,13 @@ This is not surprising, since the maxcut circuit creates states with high levels
 
 \paragraph{Multi-Qubit Teleportation}
 
+Quantum teleportation is a core concept in quantum computing.
+It allows the transportation of qubit information from one physical qubit to another.
+Teleportation has many practical uses, including quantum cryptography \cite{pirandola2015advances}, for example.
+In this paper, we use \textit{multi-qubit} teleportation, which simply repeats teleportation $n$ times across $n$ qubits,
+in order to show the scaling differences between simulators as the number of qubits increases.
+The results are presented in figure \ref{fig:tele}.
+
 
 \paragraph{Repeat-Until Success}
 
@@ -665,7 +672,7 @@ If the terminal condition is reached, the operation has been performed.
 Otherwise, the operation has failed, meaning the identity has been performed, and the entire
 circuit is repeated until the terminal condition is reached.
 These circuits provide an excellent benchmark for simulating dynamic lifting,
-since they contain many non-trivial mid-circuit measurements.
+since they contain many mid-circuit measurements.
 We choose the `V3' gate from the original RUS paper,
 and construct an arbitrary circuit structure involving the preparation of all qubits
 in the $\ket{+}$ state, $n$ V3 gates on the $n$ qubits,
