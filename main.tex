@@ -450,11 +450,12 @@ an updated state $|\psi'\rangle$.
 
 \subsection{Converting to OpenQASM}
 
-OpenQASM is used as an intermediate representation between the QServer language and the quantum simulators.
-Commands are parsed as they are received over the socket connection with the client, and, if the simulator is
+We use OpenQASM as an intermediate representation between the QServer language and the quantum simulators.
+QServer commands are parsed as they are received over the socket connection with the client, and, if the simulator is
 set to queuing mode, then non-measurement commands are placed into a queue.
 When a measurement command is received, the parsed commands in the queue are then converted into OpenQASM
 code using simple pattern matching, and the resulting code is input into the simulators, either Qiskit or Cirq.
+
 A comparison of code representing a Bell state preparation circuit in both Proto-Quipper, QServer, and OpenQASM is
 given in Figure \ref{fig:code_comparison}.
 While the Proto-Quipper code is longer and more complicated that the other two, Proto-Quipper provides
