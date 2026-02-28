@@ -498,16 +498,19 @@ These benchmarks include the quantum Fourier transform (QFT), several different 
 multi-qubit teleportation, an example of a circuit using `repeat-until-success' gates,
 and the MaxCut QAOA algorithm.
 We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
-We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
+To further assess the performance of server-client simulation archeture, we also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
 
-\paragraph{Quantum Fourier Transform} The results for QFT (Figure \ref{fig:qft}) show that the queued versions of the Cirq and
-Qiskit simulator significantly outperform
-the original Haskell simulator as the number of qubits increases.
-The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
-to simulate 28 qubits.
-They also show that while there is some overhead associated with the interaction of the Proto-Quipper interpreter with the server,
-this overhead is almost constant as the circuit increases in size, and the simulation time of the server almost converges to the
-simulation time of the bare simulator at around 25 qubits.
+\paragraph{Quantum Fourier Transform}
+The results for QFT (Figure \ref{fig:qft}) show that the queued
+versions of the Cirq and Qiskit simulator significantly outperform the
+original Haskell simulator as the number of qubits increases.  The
+Haskell simulator crashes when trying to simulate more than 20 qubits,
+while the Qiskit and Cirq simulators are able to simulate 28 qubits.
+They also show that while there is some overhead associated with
+the client-server simulation archeture, this
+overhead is almost constant as the circuit increases in size, and the
+simulation time of the server almost converges to the simulation time
+of the bare simulator at around 25 qubits.
 
 \begin{figure}
 \centering
@@ -520,22 +523,28 @@ to implementing and running the circuits directly in Qiskit/Cirq, without Proto-
 
 \paragraph{Binary Adders}
 
-For this benchmark, we implement several quantum adders:
-the `QFT adder' \cite{ruiz2017quantum}, the `Gidney adder' \cite{gidney2018halving} (which
-is a hybrid quantum-classical algorithm, requiring dynamic lifting), and the `Cuccaro adder'
-\cite{cuccaro2004new}.
-The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for these circuits,
-as shown in Figure \ref{fig:adder_results}.
-This is likely due to how the Haskell simulator stores quantum states.
-The Haskell simulator stores the statevector as a map from bit strings to amplitudes.
-For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
-This means that if the statevector is not in a superposition, then the Haskell representation needs
-only one complex number to describe it.
-This is in contrast to the Cirq and Qiskit simulators, which store the entire statevector, with $2^n$ entries (for $n$ qubits).
-As a result, the Haskell simulator will almost always outperform the Cirq and Qiskit simulators on circuits that involve
-mostly classical operations, such as adders.
-Of course, useful quantum algorithms will inevitably contain many non-classical operations, resulting in a large degree
-of superposition and entanglement, so in practice this limitation is largely irrelevant.
+For this benchmark, we implement several quantum adders: the `QFT
+adder' \cite{ruiz2017quantum}, the `Gidney adder'
+\cite{gidney2018halving} (which is a hybrid quantum-classical
+algorithm, requiring dynamic lifting), and the `Cuccaro adder'
+\cite{cuccaro2004new}.  The Cirq and Qiskit simulators perform
+significantly worse than the Haskell simulator for the Gidney adder and Cuccaro adder, as
+shown in Figure \ref{fig:adder_results}(b)(c).  This is likely due to how
+the Haskell simulator stores quantum states.  The Haskell simulator
+stores the statevector as a map from bit strings to amplitudes.  For
+example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as
+$[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.  This means that if the
+statevector is not in a superposition, then the Haskell representation
+needs only one complex number to describe it.  This is in contrast to
+the Cirq and Qiskit simulators, which store the entire statevector,
+with $2^n$ entries (for $n$ qubits).  As a result, the Haskell
+simulator will almost always outperform the Cirq and Qiskit simulators
+on circuits that involve mostly classical operations, such as adders.
+Of course, useful quantum algorithms will inevitably contain many
+non-classical operations, resulting in a large degree of superposition
+and entanglement, so in practice this limitation is largely
+irrelevant.
+
 \begin{figure*}
 \centering
 \begin{subfigure}{0.48\textwidth}
@@ -634,7 +643,7 @@ but only supports `boxed' circuits (which have no dynamic lifting instructions).
 The Q\# language is a similar high-level language,
 but is simulated by first compiling to quantum intermediate representation (QIR) \cite{stade2024towards},
 a low-level quantum-classical hybrid specification based on LLVM.
-Silq, another high-level language, runs on its own custom simulator,
+Silq \cite{bichsel2020silq}, another high-level language, runs on its own custom simulator,
 and cannot be run on third-party simulators or any real quantum hardware.
 
 While Cirq and Qiskit do allow creation and simulation of dynamic circuits, their capabilities are somewhat limited.
@@ -653,13 +662,13 @@ and let the interpreter determine how best to simulate it, as well as influence 
 
 \section{Conclusion and Future Work}
 
-This work presents an approach for simulating a high-level quantum programming language on state-of-the-art third-party
+This work presents an approach for simulating Proto-Quipper programs on state-of-the-art third-party
 quantum simulators.
 This approach extends the number of qubits able to be simulated compared to the existing Proto-Quipper simulator,
 but has some downsides when compared to the original simulator, and is still significantly limited by memory constraints.
 Future work could include integrating more advanced simulators such as tensor network simulators \cite{berezutskii2025tensor},
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
-Future work could also include compiling Proto-Quipper source code directly to a low-level intermediate format.
+Future work could also include compiling Proto-Quipper source code directly to a low-level intermediate format, such as QIR or OpenQasm.
 
 
 \bibliographystyle{splncs04}
