@@ -172,10 +172,10 @@ all initialized to the $\ket{0}$ state, then apply a series of in-place operatio
 measuring the entire qubit array at the end and returning the final qubit and bit states.
 The operations applied can be either unitary quantum gates or measurement gates.
 There is some support for higher-level programming constructs such as `if' and `while' statements,
-where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits} in Qiskit. 
+where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits}. 
 However, these features are still experimental and quite limited, and by themselves would be insufficient
-to simulate dynamic lifting, since Qiskit does not allow communication between the Python runtime and the
-circuit execution runtime during simulation.
+to simulate dynamic lifting, since they still do not allow communication between the Python runtime and the
+circuit simulation runtime.
 
 
 \subsection{Integration with Proto-Quipper}
@@ -255,8 +255,8 @@ updated_state = result.get_statevector()
 \end{verbatim}
 Here \texttt{phi} is an previous existing three qubit state. We call the \texttt{sim.run} method
 to use Qiskit simulator to run the quantum circuit \texttt{qc} and store the simulation result in
-the variable \texttt{result}. We keep the \texttt{updated\_state} for executing the future QServer
-command. The above program can also be visualized by
+the variable \texttt{result}. We keep the \texttt{updated\_state} for executing future QServer
+commands. The above program can also be visualized by
 the following circuit. 
 
 \[
@@ -327,7 +327,7 @@ and a qubit index and return the collapsed statevector and measurement result.
 Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
 qubit from the updated statevector returned from the measure function.
 This can be done by manual manipulations of the statevector using numpy.
-See following for a sample program that implements measurement of qubit $0$ on statevector
+See following for a sample program pseudo-code that implements measurement of qubit $0$ on statevector
 `\verb|phi|'.
 \begin{verbatim}
 b, phi_updated = measure(phi, [0])
