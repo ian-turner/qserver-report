@@ -49,12 +49,9 @@
     we are able to slightly extend
     the simulators' capabilities to enable running Proto-Quipper
     programs that use dynamic lifting.
-    We also build an OpenQasm converter for Proto-Quipper circuits,
-    which enable the circuits to be ran on existing quantum processors
-    and simulators.
-    Finally, we optimize our simulator using instruction queuing and
-    show they significantly outperform
-    the existing custom simulator on our benchmarks.
+    We then optimize our new simulators using instruction queuing.
+    Finally, we show that our simulators outperform the existing
+    simulator on a variety of benchmarks.
     
 \end{abstract}
 
@@ -149,11 +146,9 @@ Although these simulators do not directly support dynamic lifting,
 we are able to slightly extend
 the simulators' capabilities to enable running Proto-Quipper
 programs that use dynamic lifting.
-We also build an OpenQasm converter for Proto-Quipper circuits,
-which enable the circuits to be ran on existing quantum processors
-and simulators (Section \ref{sec:openqasm}).
-Finally, we optimize our simulator using instruction queuing and
-show they significantly outperform
+Second, we optimize our simulators by queuing instructions
+which do not need to be evaluated immediately.
+Finally, we show that our new simulators significantly outperform
 the existing custom simulator on our benchmarks (Section \ref{sec:benchmarks}).
 Our work is available at: \href{https://github.com/ian-turner/pyqserver}
 {https://github.com/ian-turner/pyqserver}.
@@ -294,8 +289,8 @@ bell00 : !(Unit ->
 bell00 x =
   let
     a = H (Init0 ())
-	b = Init0 ()
-	(b, a) = CNot b a
+    b = Init0 ()
+    (b, a) = CNot b a
   in (a, b)
 
 main : Bool * Bool
@@ -470,7 +465,7 @@ to implementing and running the circuits directly in Qiskit/Cirq, without Proto-
 \centering
 
 
-\begin{subfigure}{0.4\textwidth}
+\begin{subfigure}{0.6\textwidth}
     \centering
     \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
 # Inst 1: initialize qubit
@@ -501,7 +496,7 @@ Here each instruction requires a new circuit to be created and
 run through the simulator.}
 \end{subfigure}
 
-\begin{subfigure}{0.4\textwidth}
+\begin{subfigure}{0.6\textwidth}
     \centering
     \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
 # Run all instructions
@@ -511,8 +506,8 @@ qc.h(2)
 qc.s(3)
 qc.cx(2, 1)
 qc.cx(1, 3)
-res = sim.run(qc).result()
-phi_n = res.get_statevector()
+result = sim.run(qc).result()
+phi_new = result.get_statevector()
     \end{lstlisting}
 
     \resizebox{0.8\textwidth}{!}{%
@@ -602,6 +597,7 @@ to a low-level virtual machine language, and then that language is executed on t
 
 
 \section{Benchmark Results}
+\label{sec:benchmarks}
 
 In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
 These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
@@ -626,7 +622,7 @@ simulation time of the bare simulator at around 25 qubits.
 The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for binary adders,
 as shown in Figure \ref{fig:adder_results}.
 This is likely due to how the Haskell simulator stores quantum states.
-The Haskell simulator stores the statevector as a map of bitstrings to amplitudes.
+The Haskell simulator stores the statevector as a map from bitstrings to amplitudes.
 For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
 This means that if the statevector is not in a superposition, then the Haskell representation needs
 only one complex number to describe it.
