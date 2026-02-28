@@ -236,7 +236,7 @@ Proto-Quipper's server-client architecture with OpenQASM based simulators.
 
 The QServer language contains four types of quantum operations: qubit initialization, unitary gates, qubit measurement
 and read command. We will now discuss how we implement these operations in Qiskit. The implementation will work
-similar for Cirq. 
+similarly for Cirq. 
 
 \paragraph{Qubit Initialization}
 Qubits can be initialized in either the $|0\rangle$ or the $|1\rangle$ states.
@@ -456,109 +456,58 @@ set to queuing mode, then non-measurement commands are placed into a queue.
 When a measurement command is received, the parsed commands in the queue are then converted into OpenQASM
 code using simple pattern matching, and the resulting code is input into the simulators, either Qiskit or Cirq.
 
-A comparison of code representing a Bell state preparation circuit in both Proto-Quipper, QServer, and OpenQASM is
-given in Figure \ref{fig:code_comparison}.
-While the Proto-Quipper code is longer and more complicated that the other two, Proto-Quipper provides
-type checking and higher-level constructions that these other two languages do not, allowing for
-more sophisticated circuit design at a higher level of abstraction.
-This dynamic is analogous to how classical languages such as Python or Java compile higher-level code
-to a low-level virtual machine language, and then that language is executed on the virtual machine.
+For example, consider the following Proto-Quipper program for Bell measurement.
 
-
-
-
-
-
-
-
-
-\begin{figure*}
-	\centering
-	\begin{subfigure}{0.48\textwidth}
-		\centering
-\begin{lstlisting}[language=Haskell,basicstyle=\small\ttfamily]
-bell00 : !(Unit ->
-  Qubit * Qubit)
+\begin{verbatim}
+bell00 : !(Unit -> Qubit * Qubit)
 bell00 x =
-  let
-    a = H (Init0 ())
-    b = Init0 ()
-    (b, a) = CNot b a
+  let a = H (Init0 ())
+      b = Init0 ()
+      (b, a) = CNot b a
   in (a, b)
 
-main : Bool * Bool
-main =
-  let
-    (a, b) = bell00 ()
-  in (dynlift (Meas a),
-    dynlift (Meas b))
-\end{lstlisting}
-		\caption{Proto-Quipper code}
-	\end{subfigure}
-	\begin{subfigure}{0.48\textwidth}
-		\centering
-\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
-Q 0
-H 0
-Q 1
-CNOT 1 0
-M 0
-R 0
-M 1
-R 1
-\end{lstlisting}
-		\caption{QServer code}
-	\end{subfigure}
-	\begin{subfigure}{0.5\textwidth}
-		\centering
-		\begin{lstlisting}[language=C,basicstyle=\small\ttfamily]
+bellMeas : Bool * Bool
+bellMeas =
+  let (a, b) = bell00 ()
+  in (dynlift (Meas a), dynlift (Meas b))
+\end{verbatim}
+
+When evaluating \texttt{bellMeas}, the Proto-Quipper interpretor will generate the
+following QServer commands:
+\[
+\texttt{Q 0; H 0; Q 1; CNOT 1 0; M 0; R 0; M 1; R 1}
+\]
+Here \texttt{Q}, \texttt{M} and \texttt{R} are the intialization, measurement and the
+read commands respectively. When receiving the measuremnt commands, the our Qiskit simulation server will generate the following OpenQasm code.
+
+\begin{verbatim}
 qubit[2] qs;
 bit[2] bs;
 h qs[0];
 cx qs[0], qs[1];
 bs[0] = measure qs[0];
 bs[1] = measure qs[1];
-\end{lstlisting}
-		\caption{OpenQASM code}
-	\end{subfigure}
-	\caption{Comparison of code between Proto-Quipper, QServer and OpenQASM}
-	\label{fig:code_comparison}
-\end{figure*}
+\end{verbatim}
 
 
+\section{Benchmark Results}
+\label{sec:benchmarks}
 
+In order to evaluate the simulators we construct a series of benchmark programs in Proto-Quipper.
+These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
+multi-qubit teleportation, an example of a circuit using `repeat-until-success' gates,
+and the MaxCut QAOA algorithm.
+We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
+We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
 
-
-
-
-
-
-% \begin{figure}
-
-%     \resizebox{0.3\textwidth}{!}{%
-%     \begin{circuitikz}
-%     \tikzstyle{every node}=[font=\LARGE]
-%     \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
-%     \draw [short] (7.25,14.25) -- (7.75,14.25);
-%     \draw [short] (7.25,13.5) -- (7.75,13.5);
-%     \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
-%     \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
-%     \node [font=\Large] at (11.75,13.5) {$|\psi'\rangle$};
-%     \node [font=\Large] at (11.75,14.25) {$b$};
-%     \draw  (10.0,14.5) rectangle  node {\large M} (10.5,14.0);
-%     \draw [short] (9,13.5) -- (11.25,13.5);
-%     \draw [short] (9,14.25) -- (10.0,14.25);
-%     \draw [short] (10.5,14.3) -- (11.25,14.3);
-%     \draw [short] (10.5,14.2) -- (11.25,14.2);
-%     \end{circuitikz}
-%     }%
-
-% \caption{Python-like pseudo-code for measuring a qubit. }
-
-
-
-% \label{fig:measure_circ}
-% \end{figure}
+\paragraph{Quantum Fourier Transform} The results for QFT (Figure \ref{fig:qft}) show that the queued versions of the Cirq and
+Qiskit simulator significantly outperform
+the original Haskell simulator as the number of qubits increases.
+The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
+to simulate 28 qubits.
+They also show that while there is some overhead associated with the interaction of the Proto-Quipper interpreter with the server,
+this overhead is almost constant as the circuit increases in size, and the simulation time of the server almost converges to the
+simulation time of the bare simulator at around 25 qubits.
 
 \begin{figure}
 \centering
@@ -569,6 +518,24 @@ to implementing and running the circuits directly in Qiskit/Cirq, without Proto-
 \end{figure}
 
 
+\paragraph{Binary Adders}
+
+For this benchmark, we implement several quantum adders:
+the `QFT adder' \cite{ruiz2017quantum}, the `Gidney adder' \cite{gidney2018halving} (which
+is a hybrid quantum-classical algorithm, requiring dynamic lifting), and the `Cuccaro adder'
+\cite{cuccaro2004new}.
+The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for these circuits,
+as shown in Figure \ref{fig:adder_results}.
+This is likely due to how the Haskell simulator stores quantum states.
+The Haskell simulator stores the statevector as a map from bit strings to amplitudes.
+For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
+This means that if the statevector is not in a superposition, then the Haskell representation needs
+only one complex number to describe it.
+This is in contrast to the Cirq and Qiskit simulators, which store the entire statevector, with $2^n$ entries (for $n$ qubits).
+As a result, the Haskell simulator will almost always outperform the Cirq and Qiskit simulators on circuits that involve
+mostly classical operations, such as adders.
+Of course, useful quantum algorithms will inevitably contain many non-classical operations, resulting in a large degree
+of superposition and entanglement, so in practice this limitation is largely irrelevant.
 \begin{figure*}
 \centering
 \begin{subfigure}{0.48\textwidth}
@@ -593,73 +560,8 @@ to implementing and running the circuits directly in Qiskit/Cirq, without Proto-
 \end{figure*}
 
 
-\begin{figure*}
-    \centering
-    \includegraphics[width=0.8\linewidth]{{ ./images/v3.png }}
-    \caption{V3 circuit} 
-    \label{fig:v3_bench}
-\end{figure*}
 
 
-
-
-
-
-\section{Benchmark Results}
-\label{sec:benchmarks}
-
-In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
-These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
-multi-qubit teleportation, an example of a circuit using `repeat-until-success' gates,
-and the MaxCut QAOA algorithm.
-We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
-We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
-
-\paragraph{Quantum Fourier Transform} The results for QFT (Figure \ref{fig:qft}) show that the queued versions of the Cirq and
-Qiskit simulator significantly outperform
-the original Haskell simulator as the number of qubits increases.
-The Haskell simulator crashes when trying to simulate more than 20 qubits, while the Qiskit and Cirq simulators are able
-to simulate 28 qubits.
-They also show that while there is some overhead associated with the interaction of the Proto-Quipper interpreter with the server,
-this overhead is almost constant as the circuit increases in size, and the simulation time of the server almost converges to the
-simulation time of the bare simulator at around 25 qubits.
-
-
-\paragraph{Binary Adders}
-
-
-For this benchmark, we implement several quantum adders:
-the `QFT adder' \cite{ruiz2017quantum}, the `Gidney adder' \cite{gidney2018halving} (which
-is a hybrid quantum-classical algorithm, requiring dynamic lifting), and the `Cuccaro adder'
-\cite{cuccaro2004new}.
-The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for these circuits,
-as shown in Figure \ref{fig:adder_results}.
-This is likely due to how the Haskell simulator stores quantum states.
-The Haskell simulator stores the statevector as a map from bit strings to amplitudes.
-For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
-This means that if the statevector is not in a superposition, then the Haskell representation needs
-only one complex number to describe it.
-This is in contrast to the Cirq and Qiskit simulators, which store the entire statevector, with $2^n$ entries (for $n$ qubits).
-As a result, the Haskell simulator will almost always outperform the Cirq and Qiskit simulators on circuits that involve
-mostly classical operations, such as adders.
-Of course, useful quantum algorithms will inevitably contain many non-classical operations, resulting in a large degree
-of superposition and entanglement, so in practice this limitation is largely irrelevant.
-
-
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{{ ./images/maxcut.png }}
-\caption{MaxCut QAOA}
-\label{fig:maxcut}
-\end{figure}
-
-
-\begin{figure}
-\centering
-\includegraphics[width=0.8\textwidth]{{ ./images/tele.png }}
-\caption{$n$-Qubit teleportation}
-\label{fig:tele}
-\end{figure}
 
 
 \paragraph{MaxCut QAOA}
@@ -674,6 +576,13 @@ The results in Figure \ref{fig:maxcut} show that the Cirq and Qiskit simulators 
 simulator on this task.
 This is not surprising, since the maxcut circuit creates states with high levels of superposition and entanglement.
 
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth]{{ ./images/maxcut.png }}
+\caption{MaxCut QAOA}
+\label{fig:maxcut}
+\end{figure}
+
 
 \paragraph{Multi-Qubit Teleportation}
 
@@ -683,6 +592,13 @@ Teleportation has many practical uses, including quantum cryptography \cite{pira
 In this paper, we use \textit{multi-qubit} teleportation, which simply repeats teleportation $n$ times across $n$ qubits,
 in order to show the scaling differences between simulators as the number of qubits increases.
 The results are presented in Figure \ref{fig:tele}.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.8\textwidth]{{ ./images/tele.png }}
+\caption{$n$-Qubit teleportation}
+\label{fig:tele}
+\end{figure}
 
 
 \paragraph{Repeat-Until Success}
@@ -703,6 +619,12 @@ followed by a layer of $n-1$ CNOT gates, where the control of the $i$-th gate
 is on qubit $i$, and the target is on qubit $i+1$.
 The results for this benchmark are presented in Figure \ref{fig:v3_bench}.
 
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.8\linewidth]{{ ./images/v3.png }}
+    \caption{V3 circuit} 
+    \label{fig:v3_bench}
+\end{figure*}
 
 \section{Related work}
 
