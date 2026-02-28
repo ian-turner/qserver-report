@@ -59,7 +59,7 @@
 
 \section{Introduction}
 
-Quantum programming languages allow programers to design quantum algorithms at varying levels of abstraction.
+Quantum programming languages allow programmers to design quantum algorithms at varying levels of abstraction.
 For example, OpenQASM \cite{cross2022openqasm} is designed as an intermediate representation for describing quantum circuits.  
 Whereas in Cirq \cite{cirq} and Qiskit \cite{qiskit}, programmers are able to use all of Python's libraries and functionality to construct
 quantum circuits. 
@@ -410,7 +410,7 @@ phi_updated = result.get_statevector()
     \end{circuitikz}
     }%
 
-\caption{Python-like psuedo-code for measuring a qubit. The `remove' function here is a placeholder
+\caption{Python-like pseudo-code for measuring a qubit. The `remove' function here is a placeholder
 for manual manipulation of the statevector using numpy.}
 
 
@@ -574,7 +574,7 @@ First, the statevector of the previous computations only has to be prepared once
 queued circuit, instead of between each instruction.
 Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
 on circuit re-writing and gate fusion \cite{elsman2025gate}.
-An example of instruction queueing is given in Figure \ref{fig:queued_circ}.
+An example of instruction queuing is given in Figure \ref{fig:queued_circ}.
 
 
 
@@ -590,7 +590,7 @@ given in Figure \ref{fig:code_comparison}.
 While the Proto-Quipper code is longer and more complicated that the other two, Proto-Quipper provides
 type checking and higher-level constructions that these other two languages do not, allowing for
 more sophisticated circuit design at a higher level of abstraction.
-This dynamic is analagous to how classical languages such as Python or Java compile higher-level code
+This dynamic is analogous to how classical languages such as Python or Java compile higher-level code
 to a low-level virtual machine language, and then that language is executed on the virtual machine.
 
 
@@ -624,7 +624,7 @@ is a hybrid quantum-classical algorithm, requiring dynamic lifting), and the `Cu
 The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for these circuits,
 as shown in Figure \ref{fig:adder_results}.
 This is likely due to how the Haskell simulator stores quantum states.
-The Haskell simulator stores the statevector as a map from bitstrings to amplitudes.
+The Haskell simulator stores the statevector as a map from bit strings to amplitudes.
 For example, the state $(|00\rangle + |11\rangle)/\sqrt{2}$ is stored as $[(00, 1/\sqrt{2}), (11, 1/\sqrt{2})]$.
 This means that if the statevector is not in a superposition, then the Haskell representation needs
 only one complex number to describe it.
