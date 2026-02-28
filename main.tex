@@ -327,18 +327,33 @@ and a qubit index and return the collapsed statevector and measurement result.
 Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
 qubit from the updated statevector returned from the measure function.
 This can be done by manual manipulations of the statevector using numpy.
-See following for a sample program that implements measurement. 
+See following for a sample program that implements measurement of qubit $0$ on statevector
+`\verb|phi|'.
 \begin{verbatim}
 b, phi_updated = measure(phi, [0])
 phi.remove([0])
 \end{verbatim}
 
 \paragraph{Read command}
-QServer also has the `read' instruction, which lifts a bit from the server internal state back into the interpreter environment
-to be used in further circuit generation.
+
+QServer also has the `read' instruction, which lifts a bit from the server internal
+state back into the interpreter environment to be used in further circuit generation.
 When the server receives a read instruction,
-it must pause simulation and hold the current simulation state in memory. Here is a
-sample program in Python that implements the read command. 
+it must pause simulation while it sends the result to the client and waits for further instruction.
+The server does this by executing the non-measurement instructions which have
+accumulated in the queue, then performing measurement as described in the previous paragraph,
+and saving the collapsed statevector
+in memory to be re-initialized when the next section of the circuit needs to be executed.
+The following pseudo-code roughly shows how this is accomplished in Python.
+Here, the `measure' function of the simulator uses the Qiskit measurement function and
+saves the collapsed state vector as internal state (if there are any remaining qubits after measurement),
+and `register' is an integer corresponding to the QServer register to be measured.
+Returning a reply simply sends data over the network socket to the client.
+\begin{verbatim}
+simulator.execute_queue()
+result = simulator.measure(register)
+return Reply(result)
+\end{verbatim}
 
 
 \subsection{Instruction Queuing}
