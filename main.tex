@@ -498,7 +498,9 @@ These benchmarks include the quantum Fourier transform (QFT), several different 
 multi-qubit teleportation, an example of a circuit using `repeat-until-success' gates,
 and the MaxCut QAOA algorithm.
 We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
-To further assess the performance of server-client simulation archeture, we also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
+To further assess the performance of the server-client simulation architecture,
+we also compile the benchmark circuits which do not include dynamic lifting
+to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
 
 \paragraph{Quantum Fourier Transform}
 The results for QFT (Figure \ref{fig:qft}) show that the queued
