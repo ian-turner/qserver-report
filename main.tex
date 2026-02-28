@@ -323,27 +323,132 @@ See the following circuit visualization.
 \paragraph{Measurements}
 Measurements can be implemented directly on the statevector without creating circuit objects.
 Both Qiskit and Cirq provide built-in functions for measurement, which take in a statevector
-and a qubit index and return the collapsed statevector and measurement result. See the following
-Qiskit program. 
+and a qubit index and return the collapsed statevector and measurement result. 
 Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
 qubit from the updated statevector returned from the measure function.
 This can be done by manual manipulations of the statevector using numpy.
-
+See following for a sample program that implements measurement. 
 \begin{verbatim}
 b, phi_updated = measure(phi, [0])
 phi.remove([0])
 \end{verbatim}
 
-
 \paragraph{Read command}
-More importantly, it also has the `read' instruction, which lifts a bit from the server internal state back into the interpreter environment
+QServer also has the `read' instruction, which lifts a bit from the server internal state back into the interpreter environment
 to be used in further circuit generation.
-When the server receives a read instruction, it must pause simulation and hold the current simulation state in memory,
+When the server receives a read instruction,
+it must pause simulation and hold the current simulation state in memory. Here is a
+sample program in Python that implements the read command. 
+
+
+\subsection{Instruction Queuing}
+
+
+Given the fact that the server only sends back results when a read command is received, instructions need not be evaluated
+until their results are required by the client.
+This fact allows us to keep instructions in a queue, and only evaluate the accumulated
+circuit once a measurement command is received.
+This approach has several advantages.
+First, the statevector of the previous computations only has to be prepared once, at the beginning of the
+queued circuit, instead of between each instruction.
+Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
+on circuit re-writing and gate fusion \cite{elsman2025gate}.
+
+For example, consider the simulation of the following circuit.
+
+\[
+    \resizebox{0.5\textwidth}{!}{%
+    \begin{circuitikz}
+    \tikzstyle{every node}=[font=\LARGE]
+    \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
+    \draw [short] (7.25,14.25) -- (7.75,14.25);
+    \draw [short] (7.25,13.5) -- (7.75,13.5);
+    \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
+    \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
+    \node [font=\LARGE] at (13.5,14.5) {$|\psi'\rangle$};
+    \draw  (9.5,14.5) rectangle  node {\large H} (10,14);
+    \draw [short] (9,14.25) -- (9.5,14.25);
+    \draw [short] (9,13.5) -- (10.25,13.5);
+    \node [font=\Large] at (6.75,15.75) {$|0\rangle$};
+    \node [font=\Large] at (6.75,15) {$|0\rangle$};
+    \draw [short] (7.25,15) -- (12.75,15);
+    \draw [short] (7.25,15.75) -- (12.75,15.75);
+    \draw  (10.25,13.75) rectangle  node {\large S} (10.75,13.25);
+    \node [font=\LARGE] at (9.75,13.75) {};
+    \draw [short] (10,14.25) -- (12.75,14.25);
+    \draw [short] (10.75,13.5) -- (12.75,13.5);
+    \draw [short] (11.25,15.875) -- (11.25,14.15);
+    \draw [ fill={rgb,255:red,0; green,0; blue,0} ] (11.25,14.25) circle (0.1cm);
+    \draw  (11.25,15.75) circle (0.125cm);
+    \draw [short] (12.25,15.1) -- (12.25,13.375);
+    \draw [ fill={rgb,255:red,0; green,0; blue,0} ] (12.25,15) circle (0.1cm);
+    \draw  (12.25,13.5) circle (0.125cm);
+    \end{circuitikz}
+    }%
+\]
+If not queued, our server will generate the following Qiskit program.
+
+\begin{verbatim}
+# Inst 1: initialize qubit
+qc = QuantumCircuit(3)
+qc.initialize(phi, [1, 2])
+result = sim.run(qc).result()
+phi = result.get_statevector()
+
+# Inst 2: initialize qubit
+qc = QuantumCircuit(4)
+qc.initialize(phi, [1, 2, 3])
+result = sim.run(qc).result()
+phi = result.get_statevector()
+
+# Inst 3: H gate on qubit 2
+qc = QuantumCircuit(4)
+qc.initialize(phi, [0, 1, 2, 3])
+qc.h(2)
+result = sim.run(qc).result()
+phi = result.get_statevector()
+
+# Insts 4-6: gate instructions
+# ...
+\end{verbatim}
+Here each instruction requires a new circuit to be created and
+run through the simulator. However, if using the queueing technique,
+our server will execute the following more efficient program.
+
+\begin{verbatim}
+# Run all instructions
+qc = QuantumCircuit(4)
+qc.initialize(phi, [2, 3])
+qc.h(2)
+qc.s(3)
+qc.cx(2, 1)
+qc.cx(1, 3)
+result = sim.run(qc).result()
+phi_new = result.get_statevector()
+\end{verbatim}
+Here the queued circuit with initialization of a statevector
+$|\psi\rangle$ on qubits 3 and 4, initialization of qubits 1 and 2 in
+the $|0\rangle$ state, and several queued unitary gates, resulting in
+an updated state $|\psi'\rangle$.
 
 
 
-% \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-% \end{lstlisting}
+\subsection{Converting to OpenQASM}
+
+OpenQASM is used as an intermediate representation between the QServer language and the quantum simulators.
+Commands are parsed as they are received over the socket connection with the client, and, if the simulator is
+set to queuing mode, then non-measurement commands are placed into a queue.
+When a measurement command is received, the parsed commands in the queue are then converted into OpenQASM
+code using simple pattern matching, and the resulting code is input into the simulators, either Qiskit or Cirq.
+A comparison of code representing a Bell state preparation circuit in both Proto-Quipper, QServer, and OpenQASM is
+given in Figure \ref{fig:code_comparison}.
+While the Proto-Quipper code is longer and more complicated that the other two, Proto-Quipper provides
+type checking and higher-level constructions that these other two languages do not, allowing for
+more sophisticated circuit design at a higher level of abstraction.
+This dynamic is analogous to how classical languages such as Python or Java compile higher-level code
+to a low-level virtual machine language, and then that language is executed on the virtual machine.
+
+
 
 
 
@@ -412,40 +517,32 @@ bs[1] = measure qs[1];
 
 
 
-\begin{figure}
-\centering
+% \begin{figure}
 
+%     \resizebox{0.3\textwidth}{!}{%
+%     \begin{circuitikz}
+%     \tikzstyle{every node}=[font=\LARGE]
+%     \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
+%     \draw [short] (7.25,14.25) -- (7.75,14.25);
+%     \draw [short] (7.25,13.5) -- (7.75,13.5);
+%     \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
+%     \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
+%     \node [font=\Large] at (11.75,13.5) {$|\psi'\rangle$};
+%     \node [font=\Large] at (11.75,14.25) {$b$};
+%     \draw  (10.0,14.5) rectangle  node {\large M} (10.5,14.0);
+%     \draw [short] (9,13.5) -- (11.25,13.5);
+%     \draw [short] (9,14.25) -- (10.0,14.25);
+%     \draw [short] (10.5,14.3) -- (11.25,14.3);
+%     \draw [short] (10.5,14.2) -- (11.25,14.2);
+%     \end{circuitikz}
+%     }%
 
-    \centering
-
-
-    \centering
-
-    \resizebox{0.3\textwidth}{!}{%
-    \begin{circuitikz}
-    \tikzstyle{every node}=[font=\LARGE]
-    \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
-    \draw [short] (7.25,14.25) -- (7.75,14.25);
-    \draw [short] (7.25,13.5) -- (7.75,13.5);
-    \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
-    \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
-    \node [font=\Large] at (11.75,13.5) {$|\psi'\rangle$};
-    \node [font=\Large] at (11.75,14.25) {$b$};
-    \draw  (10.0,14.5) rectangle  node {\large M} (10.5,14.0);
-    \draw [short] (9,13.5) -- (11.25,13.5);
-    \draw [short] (9,14.25) -- (10.0,14.25);
-    \draw [short] (10.5,14.3) -- (11.25,14.3);
-    \draw [short] (10.5,14.2) -- (11.25,14.2);
-    \end{circuitikz}
-    }%
-
-\caption{Python-like pseudo-code for measuring a qubit. The `remove' function here is a placeholder
-for manual manipulation of the statevector using numpy.}
+% \caption{Python-like pseudo-code for measuring a qubit. }
 
 
 
-\label{fig:measure_circ}
-\end{figure}
+% \label{fig:measure_circ}
+% \end{figure}
 
 \begin{figure}
 \centering
@@ -488,124 +585,8 @@ to implementing and running the circuits directly in Qiskit/Cirq, without Proto-
 \end{figure*}
 
 
-\begin{figure}
-\centering
 
 
-\begin{subfigure}{0.6\textwidth}
-    \centering
-    \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-# Inst 1: initialize qubit
-qc = QuantumCircuit(3)
-qc.initialize(phi, [1, 2])
-result = sim.run(qc).result()
-phi = result.get_statevector()
-
-# Inst 2: initialize qubit
-qc = QuantumCircuit(4)
-qc.initialize(phi, [1, 2, 3])
-result = sim.run(qc).result()
-phi = result.get_statevector()
-
-# Inst 3: H gate on qubit 2
-qc = QuantumCircuit(4)
-qc.initialize(phi, [0, 1, 2, 3])
-qc.h(2)
-result = sim.run(qc).result()
-phi = result.get_statevector()
-
-# Insts 4-6: gate instructions
-# ...
-    \end{lstlisting}
-
-\caption{Unqueued execution of circuit in Qiskit.
-Here each instruction requires a new circuit to be created and
-run through the simulator.}
-\end{subfigure}
-
-\begin{subfigure}{0.6\textwidth}
-    \centering
-    \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-# Run all instructions
-qc = QuantumCircuit(4)
-qc.initialize(phi, [2, 3])
-qc.h(2)
-qc.s(3)
-qc.cx(2, 1)
-qc.cx(1, 3)
-result = sim.run(qc).result()
-phi_new = result.get_statevector()
-    \end{lstlisting}
-
-    \resizebox{0.8\textwidth}{!}{%
-    \begin{circuitikz}
-    \tikzstyle{every node}=[font=\LARGE]
-    \draw  (7.75,14.5) rectangle  node {\LARGE $|\psi\rangle$} (9,13.25);
-    \draw [short] (7.25,14.25) -- (7.75,14.25);
-    \draw [short] (7.25,13.5) -- (7.75,13.5);
-    \node [font=\Large] at (6.75,14.25) {$|0\rangle$};
-    \node [font=\Large] at (6.75,13.5) {$|0\rangle$};
-    \node [font=\LARGE] at (13.5,14.5) {$|\psi'\rangle$};
-    \draw  (9.5,14.5) rectangle  node {\large H} (10,14);
-    \draw [short] (9,14.25) -- (9.5,14.25);
-    \draw [short] (9,13.5) -- (10.25,13.5);
-    \node [font=\Large] at (6.75,15.75) {$|0\rangle$};
-    \node [font=\Large] at (6.75,15) {$|0\rangle$};
-    \draw [short] (7.25,15) -- (12.75,15);
-    \draw [short] (7.25,15.75) -- (12.75,15.75);
-    \draw  (10.25,13.75) rectangle  node {\large S} (10.75,13.25);
-    \node [font=\LARGE] at (9.75,13.75) {};
-    \draw [short] (10,14.25) -- (12.75,14.25);
-    \draw [short] (10.75,13.5) -- (12.75,13.5);
-    \draw [short] (11.25,15.875) -- (11.25,14.15);
-    \draw [ fill={rgb,255:red,0; green,0; blue,0} ] (11.25,14.25) circle (0.1cm);
-    \draw  (11.25,15.75) circle (0.125cm);
-    \draw [short] (12.25,15.1) -- (12.25,13.375);
-    \draw [ fill={rgb,255:red,0; green,0; blue,0} ] (12.25,15) circle (0.1cm);
-    \draw  (12.25,13.5) circle (0.125cm);
-    \end{circuitikz}
-    }%
-    \caption{Queued circuit with initialization of a statevector $|\psi\rangle$ on qubits 3 and 4,
-    initialization of qubits 1 and 2 in the $|0\rangle$ state, and several queued unitary gates,
-    resulting in an updated state $|\psi'\rangle$.}
-\end{subfigure}
-
-\caption{Comparison between queued and un-queued circuits}
-\label{fig:queued_circ}
-\end{figure}
-
-
-
-\subsection{Instruction Queuing}
-
-
-Given the fact that the server only sends back results when a read command is received, instructions need not be evaluated
-until their results are required by the client.
-This fact allows us to keep instructions in a queue, and only evaluate the accumulated
-circuit once a measurement command is received.
-This approach has several advantages.
-First, the statevector of the previous computations only has to be prepared once, at the beginning of the
-queued circuit, instead of between each instruction.
-Second, it allows the simulator server to take advantage of optimizations in the Cirq and Qiskit simulators, which rely
-on circuit re-writing and gate fusion \cite{elsman2025gate}.
-An example of instruction queuing is given in Figure \ref{fig:queued_circ}.
-
-
-
-\subsection{Converting to OpenQASM}
-
-OpenQASM is used as an intermediate representation between the QServer language and the quantum simulators.
-Commands are parsed as they are received over the socket connection with the client, and, if the simulator is
-set to queuing mode, then non-measurement commands are placed into a queue.
-When a measurement command is received, the parsed commands in the queue are then converted into OpenQASM
-code using simple pattern matching, and the resulting code is input into the simulators, either Qiskit or Cirq.
-A comparison of code representing a Bell state preparation circuit in both Proto-Quipper, QServer, and OpenQASM is
-given in Figure \ref{fig:code_comparison}.
-While the Proto-Quipper code is longer and more complicated that the other two, Proto-Quipper provides
-type checking and higher-level constructions that these other two languages do not, allowing for
-more sophisticated circuit design at a higher level of abstraction.
-This dynamic is analogous to how classical languages such as Python or Java compile higher-level code
-to a low-level virtual machine language, and then that language is executed on the virtual machine.
 
 
 \section{Benchmark Results}
