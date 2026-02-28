@@ -64,8 +64,8 @@ For example, OpenQASM \cite{cross2022openqasm} is designed as an intermediate re
 Whereas in Cirq \cite{cirq} and Qiskit \cite{qiskit}, programmers are able to use all of Python's libraries and functionality to construct
 quantum circuits. 
 For even higher-level languages, such as Silq \cite{bichsel2020silq}, Q\# \cite{svore2018q}, Quipper \cite{green2013quipper},
-and Proto-Quipper \cite{fu2023proto}, they provide advance features such as automatic uncomputation, type checking, dynamic
-lifting and type-safe circuit reversing and control.
+and Proto-Quipper \cite{fu2023proto}, they provide advanced features such as automatic uncomputation, type-checking, dynamic
+lifting, and type-safe circuit reversing and control.
 
 Proto-Quipper is a family of functional quantum programming languages designed to give a formal foundation to Quipper
 \cite{fu2023proto,fu2024proto}.
@@ -73,20 +73,16 @@ Proto-Quipper contains two runtimes: circuit generation time and circuit executi
 Variables whose values are determined during circuit generation time are called \textit{parameters}, while variables
 that are determined during circuit execution time are called \textit{states}.
 \textit{Dynamic lifting} allows for state variables to be `lifted' to parameters variables.
-The circuit measurement results from the circuit execution runtime can be used 
-in the circuit
-generation time to inform the generation of the next circuit.
+The measurement results from the circuit execution runtime can then be used 
+in the circuit generation runtime to inform the generation of the next circuit.
 Thus dynamic lifting allows the two runtimes to be interleaved seamlessly.
 
-While dynamic lifting enable programmers to create much more complex circuits than
+While dynamic lifting enables programmers to create much more complex circuits than
 would be feasible to directly implement in Cirq or Qiskit, it is an expensive operation, as it
 requires control to pass from circuit execution time back to circuit generation time. This requires
 the real-time quantum computer to put all of its active qubits into long-term storage while spending
 an indeterminate amount of time awaiting further instructions from the classical computer in
 charge of circuit generation \cite{fu2023proto}.
-Moreover, dynamic lifting increases the
-complexity of the simulation of such programs, since static circuit objects cannot be created,
-and communication between the simulator and language interpreter is needed during the simulation.
 So far, no work has attempted to allow direct simulation of dynamic lifting in Quipper or Proto-Quipper on third-party simulators.
 In this work, we enable Proto-Quipper programs to
 be run on state-of-the-art quantum simulators.
@@ -124,18 +120,18 @@ Proto-Quipper programs are simulated with a client-server architecture as illust
 in Figure \ref{fig:sim_diagram}.
 The client is the Proto-Quipper interpreter, and the server is
 a simulator. 
-The client evaluates Proto-Quipper programs, produces a sequence of low-level quantum
+The client evaluates Proto-Quipper programs and produces a sequence of low-level quantum
 instructions for the server. This low-level assembly-like language for the server is called QServer in Proto-Quipper-Dyn's implementation \cite{fu2023proto}. The QServer
 language is very similar to OpenQasm 2 \cite{cross2017}, the main difference is that QServer
-includes a read command
-that reads the results of the measurements.
+includes a read command that reads the results of the measurements.
 The QServer instructions can be sent to the server over a network socket,
 and each instruction is executed by the server sequentially.
 The server performs the read command and sends back measurement results when it receives a dynamic lifting command from the client.
 
 So far Proto-Quipper only comes with its own custom simulator written in Haskell, and
 currently there is no mechanism available to run Proto-Quipper programs on
-the state-of-the art simulators, especially the ones with dynamic lifting. As it turns out, the client-server architecture is flexible
+the state-of-the art simulators, especially programs with dynamic lifting. 
+As it turns out, the client-server architecture is flexible
 enough for us to implement servers that are based on other third-party quantum simulators,
 as long as these servers implement the QServer language.  
 
@@ -173,12 +169,14 @@ and both have multiple state-of-the-art simulation methods.
 In Qiskit and Cirq, the programs that
 generate quantum circuits are usually structured
 by the following: they start with an array of qubits and bits
-all initialized to the $\ket{0}$ state, then we apply a series of in-place operations on those qubits and bits, and then (usually)
+all initialized to the $\ket{0}$ state, then apply a series of in-place operations on those qubits and bits, and then (usually)
 measuring the entire qubit array at the end and returning the final qubit and bit states.
 The operations applied can be either unitary quantum gates or measurement gates.
 There is some support for higher-level programming constructs such as `if' and `while' statements,
 where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits} in Qiskit. 
-But these features are still experimental and are quite limited, so we do not use them in this project.
+However, these features are still experimental and quite limited, and by themselves would be insufficient
+to simulate dynamic lifting, since Qiskit does not allow communication between the Python runtime and the
+circuit execution runtime during simulation.
 
 
 \subsection{Integration with Proto-Quipper}
@@ -334,12 +332,12 @@ bs[1] = measure qs[1];
 
 \paragraph{Qubit Initialization}
 
-Qubits can be initialized into either the $|0\rangle$ or the $|1\rangle$ states.
+Qubits can be initialized in either the $|0\rangle$ or the $|1\rangle$ states.
 If the simulation currently has the state $|\psi\rangle$, then when a new qubit
 is added in state $|0\rangle$, the new simulation state will be $|0\rangle \otimes |\psi\rangle$.
-This is pictured in Figure \ref{fig:qubit_init}.
 The process is the same for initializing a qubit in the 1 state, except an X gate is applied
 to the initialized qubit, and the resulting state is $|1\rangle \otimes |\psi\rangle$.
+This is pictured in Figure \ref{fig:qubit_init}.
 
 \paragraph{Unitary Gates}
 
@@ -387,7 +385,7 @@ phi_updated = result.get_statevector()
 
     \centering
     \begin{lstlisting}[language=Python,basicstyle=\small\ttfamily]
-    b, phi_updated = phi.measure([0])
+    b, phi_updated = measure(phi, [0])
     phi.remove([0])
     \end{lstlisting}
 
@@ -561,7 +559,7 @@ and a qubit index and return the collapsed statevector and measurement result.
 Since measurements in Proto-Quipper consume the qubit, we must also remove the measured
 qubit from the updated statevector returned from the measure function.
 This can be done by manual manipulations of the statevector using numpy.
-The generalized code for implementing measurements is given in Figure \ref{fig:measure_circ}.
+Pseudo-code for implementing measurements is given in Figure \ref{fig:measure_circ}.
 
 
 \subsection{Instruction Queuing}
@@ -587,7 +585,7 @@ Commands are parsed as they are received over the socket connection with the cli
 set to queuing mode, then non-measurement commands are placed into a queue.
 When a measurement command is received, the parsed commands in the queue are then converted into OpenQASM
 code using simple pattern matching, and the resulting code is input into the simulators, either Qiskit or Cirq.
-A comparison of code representing a Bell state prep circuit in both Proto-Quipper, QServer, and OpenQASM is
+A comparison of code representing a Bell state preparation circuit in both Proto-Quipper, QServer, and OpenQASM is
 given in Figure \ref{fig:code_comparison}.
 While the Proto-Quipper code is longer and more complicated that the other two, Proto-Quipper provides
 type checking and higher-level constructions that these other two languages do not, allowing for
@@ -602,7 +600,7 @@ to a low-level virtual machine language, and then that language is executed on t
 In order to evaluate the simulator we construct a series of benchmark programs in Proto-Quipper.
 These benchmarks include the quantum Fourier transform (QFT), several different implementations of binary adders,
 multi-qubit teleportation, an example of a circuit using `repeat-until-success' gates,
-and the MaxCut QAOA algorithm \cite{farhi2014quantum}.
+and the MaxCut QAOA algorithm.
 We compare the queued and non-queued (normal) versions of the updated server against the original Haskell-based server.
 We also compile the benchmark circuits to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
 
@@ -619,7 +617,11 @@ simulation time of the bare simulator at around 25 qubits.
 \paragraph{Binary Adders}
 
 
-The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for binary adders,
+For this benchmark, we implement several quantum adders:
+the `QFT adder' \cite{ruiz2017quantum}, the `Gidney adder' \cite{gidney2018halving} (which
+is a hybrid quantum-classical algorithm, requiring dynamic lifting), and the `Cuccaro adder'
+\cite{cuccaro2004new}.
+The Cirq and Qiskit simulators perform significantly worse than the Haskell simulator for these circuits,
 as shown in Figure \ref{fig:adder_results}.
 This is likely due to how the Haskell simulator stores quantum states.
 The Haskell simulator stores the statevector as a map from bitstrings to amplitudes.
@@ -651,7 +653,8 @@ of superposition and entanglement, so in practice this limitation is largely irr
 
 \paragraph{MaxCut QAOA}
 
-The maxcut quantum approximate optimization algorithm finds the partition of a graph into two graphs such that the
+The maxcut quantum approximate optimization algorithm \cite{farhi2014quantum}
+finds the partition of a graph into two graphs such that the
 number of edges between the partitions (which are `cut') is maximized.
 This circuit is an ideal candidate for a simulation benchmark since it is one of the few algorithms that may provide
 quantum advantage in the near term, meaning quantum computers may soon be able to out-perform classical computers on this task.
