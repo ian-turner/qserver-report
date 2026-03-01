@@ -38,7 +38,7 @@
     to its own custom simulator written in Haskell,
     with no ability to run on third-party simulators or real quantum hardware.
     This is because the available third-party simulators
-    lack native support of \textit{dynamic lifting}. Dynamic lifting is a feature in Quipper
+    lack native support for \textit{dynamic lifting}. Dynamic lifting is a feature in Quipper
     and Proto-Quipper where measurement results can be fed back into the
     circuit generation environment in real time to generate the next
     portion of the circuit.
@@ -121,7 +121,7 @@ The client is the Proto-Quipper interpreter, and the server is
 a simulator. 
 The client evaluates Proto-Quipper programs and produces a sequence of low-level quantum
 instructions for the server. This low-level assembly-like language for the server is called QServer in Proto-Quipper-Dyn's implementation \cite{fu2023proto}. The QServer
-language is very similar to OpenQasm 2 \cite{cross2017}, the main difference is that QServer
+language is very similar to OpenQASM 2 \cite{cross2017}, the main difference is that QServer
 includes a read command that reads the results of the measurements.
 The QServer instructions can be sent to the server over a network socket,
 and each instruction is executed by the server sequentially.
@@ -169,7 +169,7 @@ In Qiskit and Cirq, the programs that
 generate quantum circuits are usually structured
 by the following: they start with an array of qubits and bits
 all initialized to the $\ket{0}$ state, then apply a series of in-place operations on those qubits and bits, and then (usually)
-measuring the entire qubit array at the end and returning the final qubit and bit states.
+measure the entire qubit array at the end and return the final qubit and bit states.
 The operations applied can be either unitary quantum gates or measurement gates.
 There is some support for higher-level programming constructs such as `if' and `while' statements,
 where operations can be conditioned on previous measurement outcomes, which is called \textit{dynamic circuits}. 
@@ -191,7 +191,7 @@ to a quantum circuit object in Cirq and Qiskit.
 We chose to use OpenQASM as an intermediate representation, since both Cirq and Qiskit have OpenQASM loading functions,
 which transform OpenQASM code into the circuit objects.
 The QServer language is very similar to OpenQASM in its function and syntax, making translation
-between the two very simple. The only thing we need to handle outside of OpenQasm is the `read'
+between the two very simple. The only thing we need to handle outside of OpenQASM is the `read'
 command from QServer, which we will discuss in more details in Section \ref{sub:sim-qiskit}. 
 See Figure \ref{fig:full_sim_diagram} for a diagram of how we extend the
 Proto-Quipper's server-client architecture with OpenQASM based simulators.  
@@ -478,7 +478,7 @@ following QServer commands:
 \texttt{Q 0; H 0; Q 1; CNOT 1 0; M 0; R 0; M 1; R 1}
 \]
 Here \texttt{Q}, \texttt{M} and \texttt{R} are the initialization, measurement and the
-read commands respectively. When receiving the measurement commands, the our Qiskit simulation server will generate the following OpenQasm code.
+read commands respectively. When receiving the measurement commands, the our Qiskit simulation server will generate the following OpenQASM code.
 
 \begin{verbatim}
 qubit[2] qs;
@@ -676,7 +676,7 @@ This approach extends the number of qubits able to be simulated compared to the 
 but is still significantly limited by memory constraints.
 Future work could include integrating more advanced simulators such as tensor network simulators \cite{berezutskii2025tensor},
 which can scale simulations to several hundred qubits by exploiting approximation and low degrees of entanglement.
-Future work could also include compiling Proto-Quipper source code directly to a low-level intermediate format, such as QIR or OpenQasm.
+Future work could also include compiling Proto-Quipper source code directly to a low-level intermediate format, such as QIR or OpenQASM.
 
 
 \bibliographystyle{splncs04}
