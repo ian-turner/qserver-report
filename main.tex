@@ -501,6 +501,12 @@ We compare the queued and non-queued (normal) versions of the updated server aga
 To further assess the performance of the server-client simulation architecture,
 we also compile the benchmark circuits which do not include dynamic lifting
 to OpenQASM and run them directly on the Cirq and Qiskit simulators using Python.
+We show that our simulator outperforms the Haskell simulator on most of our benchmark circuits,
+except those involving very low degrees of entanglement and superposition.
+We also find that the overhead added by the Proto-Quipper client-server interaction is minimal
+compared to the overall simulation time.
+As a result, we can now scale simulation to almost 30 qubits, where the Haskell simulator
+usually crashes at around 16-20.
 
 \paragraph{Quantum Fourier Transform}
 The results for QFT (Figure \ref{fig:qft}) show that the queued
