@@ -427,7 +427,7 @@ phi = result.get_statevector()
 # ...
 \end{verbatim}
 Here each instruction requires a new circuit to be created and
-run through the simulator. However, if using the queueing technique,
+run through the simulator. However, if using the queuing technique,
 our server will execute the following more efficient program.
 
 \begin{verbatim}
@@ -472,13 +472,13 @@ bellMeas =
   in (dynlift (Meas a), dynlift (Meas b))
 \end{verbatim}
 
-When evaluating \texttt{bellMeas}, the Proto-Quipper interpretor will generate the
+When evaluating \texttt{bellMeas}, the Proto-Quipper interpreter will generate the
 following QServer commands:
 \[
 \texttt{Q 0; H 0; Q 1; CNOT 1 0; M 0; R 0; M 1; R 1}
 \]
-Here \texttt{Q}, \texttt{M} and \texttt{R} are the intialization, measurement and the
-read commands respectively. When receiving the measuremnt commands, the our Qiskit simulation server will generate the following OpenQasm code.
+Here \texttt{Q}, \texttt{M} and \texttt{R} are the initialization, measurement and the
+read commands respectively. When receiving the measurement commands, the our Qiskit simulation server will generate the following OpenQasm code.
 
 \begin{verbatim}
 qubit[2] qs;
@@ -509,7 +509,7 @@ original Haskell simulator as the number of qubits increases.  The
 Haskell simulator crashes when trying to simulate more than 20 qubits,
 while the Qiskit and Cirq simulators are able to simulate 28 qubits.
 They also show that while there is some overhead associated with
-the client-server simulation archeture, this
+the client-server simulation architecture, this
 overhead is almost constant as the circuit increases in size, and the
 simulation time of the server almost converges to the simulation time
 of the bare simulator at around 25 qubits.
